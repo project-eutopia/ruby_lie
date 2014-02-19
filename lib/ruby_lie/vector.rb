@@ -1,5 +1,3 @@
-require 'matrix'
-
 module RubyLie
   
   class Vector
@@ -17,7 +15,7 @@ module RubyLie
       end
       
       @type = type
-      if algebra.class == RubyLie::Algebra
+      if algebra.is_a? RubyLie::Algebra
         @algebra = algebra
       
       # TODO F and G are fixed rank, and check rank of E type also
@@ -96,9 +94,9 @@ module RubyLie
     end
     
     def ==(v)
-      if @type != v.type
-        v = v.to_type(@type)
-      end
+      return false if @algebra != v.algebra
+      
+      v = v.to_type(@type) if @type != v.type
       
       return @coeffs == v.coeffs
     end

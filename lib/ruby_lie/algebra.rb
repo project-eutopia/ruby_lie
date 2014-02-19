@@ -1,5 +1,3 @@
-require 'matrix'
-
 module RubyLie  
   
   class Algebra
@@ -12,6 +10,10 @@ module RubyLie
       
       @cartan = get_cartan
       @alpha_to_ortho_matrix = get_alpha_to_ortho_matrix
+    end
+    
+    def ==(a)
+      return (@alg == a.alg and @rank == a.rank)
     end
     
     def fund_rep(i)

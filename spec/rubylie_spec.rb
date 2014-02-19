@@ -222,6 +222,19 @@ describe RubyLie::Algebra do
             end
           end
           
+          poset = RubyLie::RootPoset.new(algebra)
+          it "half of sum of positive roots == weyl vector" do
+            sum_positive = 0
+            poset.each do |root|
+              sum_positive += root
+            end
+            expect(Rational(1,2) * sum_positive).to be == algebra.weyl_vector
+          end
+          
+          it "highest root from poset agrees with -alpha_0" do
+            expect(poset.highest_root).to be == -algebra.alpha(0)
+          end
+          
           case alg
           when :alg_A
             it "has Coxeter number r+1="+(rank+1).to_s do

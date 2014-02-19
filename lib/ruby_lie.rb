@@ -1,4 +1,5 @@
 require "ruby_lie/version"
+require 'matrix'
 
 module RubyLie
   # Algebra symbols
@@ -15,6 +16,9 @@ module RubyLie
   end
 end
 
+require "ruby_lie/root_poset"
+require "ruby_lie/node"
 require "ruby_lie/vector"
-require "ruby_lie/highest_weight_rep"
 require "ruby_lie/algebra"
+require "ruby_lie/highest_weight_rep"
+
