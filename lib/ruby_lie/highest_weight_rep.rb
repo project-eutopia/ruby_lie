@@ -71,6 +71,18 @@ module RubyLie
       end
     end
     
+    def each_chain_with_index(root_index, chain_num)
+      index = 0
+      if @chains[root_index]
+        @chains[root_index][:node_to_chain].each do |cur_node, cur_chain_num|
+          if chain_num == cur_chain_num
+            yield cur_node, index
+            index += 1
+          end
+        end
+      end
+    end
+    
     # i is of alpha_i, and this gives an iterator down the whole chain with the given node (defaults to root)
     def each_in_root_chain(i, node = @root)
       if node.nil?
@@ -113,6 +125,14 @@ module RubyLie
       @chains[i][:num_chains]
     end
     
+    def chain_length(root_index, chain_num)
+      l = 0
+      self.each_chain(root_index, chain_num) do |node|
+        l += 1
+      end
+      return l
+    end
+    
     # Returns object like the following
     #
     # chain_hash[:num_chains] = number of chains
@@ -143,24 +163,27 @@ module RubyLie
 
     # TODO implement highest root, and sqrt factors
     def matrix_rep(i)
-      node_to_index = Hash.new
 
-      # TODO combine into bottom loop?
-      self.each_with_index do |node, index|
-        node_to_index[node] = index
-      end
-      
-      e1 = Matrix.zero(node_to_index.size)
+      size = @node_to_index_hash.size
+      e = Matrix.zero(size)
 
-      self.each_with_index do |node, index|
-        node.parents.each do |key_alpha, above_node|
-          if key_alpha == i
-            e1 += E(node_to_index[above_node], index, node_to_index.size)
+      (0..self.num_chains(i)).each do |chain_num|
+        self.each_chain_with_index(i, chain_num) do |node, node_num|
+          # Skip the first node of the chain, to get (chain.length-1) nodes
+          if node.parents[i]
+            # This subchain is a su(2) subalgebra with spin j = (chain_length-1)/2
+            # So we use the normalization:
+            #   J^- |j,m> = sqrt(j(j+1) - m(m-1)) |j,m-1>
+            # and note that J^- = transpose(J^+) to get the following coefficient
+            c = Math.sqrt(node_num * (chain_length(i,chain_num) - node_num))
+            e += c*E(@node_to_index_hash[node.parents[i]],
+                     @node_to_index_hash[node],
+                     size)
           end
         end
       end
       
-      return e1
+      return e
     end
     
     def to_s
