@@ -7,9 +7,9 @@ Gem::Specification.new do |spec|
   spec.name          = "ruby_lie"
   spec.version       = RubyLie::VERSION
   spec.authors       = ["Chris Locke"]
-  spec.email         = ["clocke@degica.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
+  spec.email         = ["project.eutopia@gmail.com"]
+  spec.description   = %q{A library for dealing with Lie algebras}
+  spec.summary       = %q{Handles vectors in root/weight basis, highest weight representations, and others}
   spec.homepage      = ""
   spec.license       = "MIT"
 
@@ -20,4 +20,5 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
+  spec.add_development_dependency 'rspec'
 end
