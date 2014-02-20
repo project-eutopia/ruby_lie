@@ -5,7 +5,8 @@ module RubyLie
     attr_reader :highest_weight
     attr_reader :algebra
     
-    def initialize(highest_weight)
+    # opts can be {:affine => true/false}
+    def initialize(highest_weight, opts = nil)
       if not highest_weight.is_a? RubyLie::Vector
         raise TypeError "#{highest_weight.class} is not an instance of RubyLie::Vector"
       end
@@ -34,7 +35,14 @@ module RubyLie
       @chains = Hash.new
       (1..@algebra.rank).each do |i|
         @chains[i] = self.chain_hash(i)
-      end      
+      end
+      
+      if opts and opts[:affine]
+        affinize_representation
+        @affine = true
+      else
+        @affine = false
+      end
     end
     
     def size
@@ -52,7 +60,22 @@ module RubyLie
     
     # Add links in the chain for \alpha_0 root
     def affinize_representation
+      return if @affine
       
+      # Loop through all weights and find those where we can subtract alpha_0
+      #
+      # weight * alpha_i^\\vee = -(q + p) with q >= 0, p <= 0, and
+      #   weight + p*alpha_i , ... weight + q*alpha_i
+      # -p = q + weight * alpha_0^\\vee
+      #
+      # Going down the chain in order means that we can assume q=0 for each we find
+      alpha_0_dual = @algebra.alpha(0, :dual => true)
+      
+      self.each do |node|
+        abs_p = node.weight * alpha_0_dual
+      end
+      
+      @affine = true
     end
     
     def each
@@ -191,7 +214,7 @@ module RubyLie
             # So we use the normalization:
             #   J^- |j,m> = sqrt(j(j+1) - m(m-1)) |j,m-1>
             # and note that J^- = transpose(J^+) to get the following coefficient
-            c = Math.sqrt(node_num * (chain_length(i,chain_num) - node_num))
+            c = Sqrt.of(node_num * (chain_length(i,chain_num) - node_num))
             e += c*E(@node_to_index_hash[node.parents[i]],
                      @node_to_index_hash[node],
                      size)
@@ -200,6 +223,20 @@ module RubyLie
       end
       
       return e
+    end
+    
+    def matrix_rep_efh
+      e = Hash.new
+      f = Hash.new
+      h = Hash.new
+      
+      (1..@algebra.rank).each do |i|
+        e[i] = matrix_rep(i)
+        f[i] = e[i].t
+        h[i] = e[i]*f[i] - f[i]*e[i]
+      end
+      
+      return [e, f, h]
     end
     
     def to_s

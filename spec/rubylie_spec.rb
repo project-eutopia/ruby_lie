@@ -1,5 +1,45 @@
 require 'spec_helper'
 
+describe RubyLie::Sqrt do
+  it "non null" do
+    expect(RubyLie::Sqrt.of(0)).not_to be_nil
+    expect(RubyLie::Sqrt.of(1)).not_to be_nil
+    expect(RubyLie::Sqrt.of(2)).not_to be_nil
+    expect(RubyLie::Sqrt.of(3)).not_to be_nil
+    expect(RubyLie::Sqrt.of(4)).not_to be_nil
+  end
+  
+  it "square roots simplify" do
+    expect(RubyLie::Sqrt.of(0)).to be == 0
+    expect(RubyLie::Sqrt.of(1)).to be == 1
+    expect(RubyLie::Sqrt.of(4)).to be == 2
+    expect(RubyLie::Sqrt.of(9)).to be == 3
+    expect(RubyLie::Sqrt.of(16)).to be == 4
+  end
+  
+  it "can multiply by Numeric" do
+    expect(1*RubyLie::Sqrt.of(1)).to be == 1
+    expect(RubyLie::Sqrt.of(1)*1).to be == 1
+    expect(1*RubyLie::Sqrt.of(4)).to be == 2
+    expect(RubyLie::Sqrt.of(4)*1).to be == 2
+    expect(2*RubyLie::Sqrt.of(1)).to be == 2
+    expect(RubyLie::Sqrt.of(1)*2).to be == 2
+    expect(2*RubyLie::Sqrt.of(2)).to be == RubyLie::Sqrt.of(8)
+    expect(RubyLie::Sqrt.of(2)*2).to be == RubyLie::Sqrt.of(8)
+    expect(0*RubyLie::Sqrt.of(3)).to be == 0
+    expect(RubyLie::Sqrt.of(3)*0).to be == 0
+    expect(1*RubyLie::Sqrt.of(1)).to be == 1
+  end
+  
+  it "perfect squares simplify" do
+    expect(RubyLie::Sqrt.of(0)*RubyLie::Sqrt.of(0)).to be == 0
+    expect(RubyLie::Sqrt.of(1)*RubyLie::Sqrt.of(1)).to be == 1
+    expect(RubyLie::Sqrt.of(2)*RubyLie::Sqrt.of(2)).to be == 2
+    expect(RubyLie::Sqrt.of(3)*RubyLie::Sqrt.of(3)).to be == 3
+    expect(RubyLie::Sqrt.of(4)*RubyLie::Sqrt.of(4)).to be == 4
+  end
+end
+
 describe RubyLie::Vector do
   a3 = RubyLie::Algebra.new(:alg_A, 3)
   
@@ -48,12 +88,12 @@ end
 
 describe RubyLie::Algebra do
   
-  algebra_list = [:alg_A, :alg_B, :alg_C, :alg_D]
+  algebra_list = [:alg_A, :alg_B]#, :alg_C, :alg_D]
   
   algebra_list.each do |alg|
     
     context alg.to_s do
-      ranks = [1,2,3,4,5,8]
+      ranks = [1,2,3,4,5]
       
       ranks.each do |rank|
         algebra = RubyLie::Algebra.new(alg, rank)
@@ -233,6 +273,22 @@ describe RubyLie::Algebra do
           
           it "highest root from poset agrees with -alpha_0" do
             expect(poset.highest_root).to be == -algebra.alpha(0)
+          end
+          
+          def comm(a,b)
+            return a*b-b*a
+          end
+          it "the matrix representations agree with Cartan matrix" do
+            (1..algebra.rank).each do |omega_i|
+              rep = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
+              e,f,h = rep.matrix_rep_efh
+              
+              (1..algebra.rank).each do |i|
+                (1..algebra.rank).each do |j|
+                  expect(comm(h[i], e[j])).to be == algebra.cartan[j-1,i-1]*e[j]
+                end
+              end
+            end
           end
           
           case alg
