@@ -54,6 +54,14 @@ module RubyLie
       return omega(i, :dual => true)
     end
     
+    def fundamental_rep(i)
+      if i >= 1 and i <= rank
+        return RubyLie::HighestWeightRep.new(self.omega(i))
+      else
+        return nil
+      end
+    end
+    
     def weyl_vector(opts = {})
       return RubyLie::Vector.new(Matrix.row_vector(rank.times.map {|j| 1}),
                                  opts[:dual] ? :omega_dual : :omega, self)

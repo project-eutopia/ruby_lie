@@ -88,12 +88,12 @@ end
 
 describe RubyLie::Algebra do
   
-  algebra_list = [:alg_A, :alg_B]#, :alg_C, :alg_D]
+  algebra_list = [:alg_A, :alg_B, :alg_C, :alg_D]
   
   algebra_list.each do |alg|
     
     context alg.to_s do
-      ranks = [1,2,3,4,5]
+      ranks = [1,2,3,4]
       
       ranks.each do |rank|
         algebra = RubyLie::Algebra.new(alg, rank)

@@ -5,16 +5,18 @@ module RubyLie
     attr_reader :sqrt_part
     attr_reader :front_part
     
-    def self.of(n, front = 1)
-      return Sqrt.new(n, front).simplify()
+    def self.of(n)
+      return Sqrt.new(n, 1).simplify()
     end
 
-    # TODO should not use publicly
+  # should not use publicly
+  protected
     def initialize(sqrt_part, front_part = 1)
       @sqrt_part = sqrt_part
       @front_part = front_part
     end
     
+  public
     def simplify
       if @sqrt_part.is_a? Float
         return @front_part * Math.sqrt(@sqrt_part)
@@ -44,20 +46,60 @@ module RubyLie
     end
     
     def to_s
-      if @sqrt_part != 1
-        if @front_part != 1
-          "#{@front_part} * sqrt(#{@sqrt_part})"
-        else
-          "sqrt(#{@sqrt_part})"
-        end
-      else
+#      return "(#{@front_part}) * (sqrt(#{@sqrt_part}))"
+      if @sqrt_part == 1
         "#{@front_part}"
+      elsif @sqrt_part == 0 or @front_part == 0
+        "0"
+      else
+        if @front_part == 1
+          "sqrt(#{@sqrt_part})"
+        else
+          "#{@front_part} * sqrt(#{@sqrt_part})"
+        end
       end
-    end 
+    end
+    
+    def -@
+#      puts "-(#{self})"
+      return Sqrt.new(@sqrt_part, -@front_part)
+    end
+    
+    def +@
+#      puts "(#{self})"
+      return self.copy
+    end
     
     # Just simply add as regular Numeric (no factoring and such)
     def +(a)
-      return self.to_f + a
+#      puts "(#{self}) + (#{a})"
+      if self == 0
+        return a
+      elsif a == 0
+        return self
+      else
+        case a
+        when Numeric
+          if @sqrt_part == 1
+            return @front_part + a
+          else
+            return self.to_f + a.to_f
+          end
+        when Sqrt
+          if @sqrt_part == a.sqrt_part
+            return Sqrt.new(@sqrt_part, @front_part + a.front_part)
+          else
+            return self.to_f + a.to_f
+          end
+        else
+          return self.to_f + a.to_f
+        end
+      end
+    end
+    
+    def -(a)
+#      puts "(#{self}) - (#{a})"
+      return self + (-a)
     end
     
     def *(a)
@@ -80,24 +122,53 @@ module RubyLie
     end
     
     def ==(a)
+      s = self.simplify()
+      if a.is_a? Sqrt
+        a = a.simplify()
+      end
+      
+      case s
+      when Sqrt
+        case a
+        when Sqrt
+          return (s.sqrt_part == a.sqrt_part and s.front_part == a.front_part)
+        when Numeric
+          return (s.sqrt_part == 1 and s.front_part == a) 
+        else
+          raise TypeError, "#{a.class} (#{a}) must be Numeric, Sqrt, or Matrix"
+        end
+      when Numeric
+        case a
+        when Sqrt
+          return (a.sqrt_part == 1 and a.front_part == s)
+        when Numeric
+          return (s == a)
+        else
+          raise TypeError, "#{a.class} (#{a}) must be Numeric, Sqrt, or Matrix"
+        end
+      end
+      
       case a
       when Sqrt
-        return (self.sqrt_part == a.sqrt_part and self.front_part == a.front_part)
+        s = self.simplify()
+        a = a.simplify()
+        if s.sqrt_part == 0 or s.front_part == 0
+          
+        end
+        return (s.sqrt_part == a.sqrt_part and s.front_part == a.front_part)
       when Numeric
-        return (self.sqrt_part == 1 and self.front_part == a)
+        s = self.simplify()
+        return (s.sqrt_part == 1 and s.front_part == a)
       else
         raise TypeError, "#{a.class} (#{a}) must be Numeric, Sqrt, or Matrix"
       end
     end
     
     def coerce(other)
-      if @sqrt_part == 1
-        return other, @front_part
-      end
-      
       case other
       when Numeric
-        return Sqrt.new(1,other), self
+#        puts "coerce #{Sqrt.new(1,other)} into #{self.copy}"
+        return Sqrt.new(1,other), self.copy
       else
         raise TypeError, "#{other.class} can't be coerced into #{self.class}"
       end
