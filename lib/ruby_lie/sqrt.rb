@@ -1,6 +1,7 @@
 module RubyLie
   
   class Sqrt
+    include Comparable
     
     attr_reader :sqrt_part
     attr_reader :front_part
@@ -18,6 +19,11 @@ module RubyLie
     
   public
     def simplify
+      if @sqrt_part < 0
+        @sqrt_part *= -1
+        @front_part *= Complex(0,1)
+      end
+      
       if @sqrt_part.is_a? Float
         return @front_part * Math.sqrt(@sqrt_part)
       end
@@ -41,8 +47,20 @@ module RubyLie
       return Sqrt.new(@sqrt_part, @front_part)
     end
     
+    def abs
+      return Sqrt.new(@sqrt_part, @front_part.abs)
+    end
+    
     def to_f
       return @front_part * Math.sqrt(@sqrt_part)
+    end
+    
+    def <=>(other)
+      if @sqrt_part == other
+        return 0
+      else
+        return self.to_f <=> other.to_f
+      end
     end
     
     def to_s
@@ -56,6 +74,20 @@ module RubyLie
           "sqrt(#{@sqrt_part})"
         else
           "#{@front_part} * sqrt(#{@sqrt_part})"
+        end
+      end
+    end
+    
+    def to_latex
+      if @sqrt_part == 1
+        "#{@front_part}"
+      elsif @sqrt_part == 0 or @front_part == 0
+        "0"
+      else
+        if @front_part == 1
+          "\\sqrt{#{@sqrt_part}}"
+        else
+          "#{@front_part} * \\sqrt{#{@sqrt_part}}"
         end
       end
     end
@@ -115,6 +147,10 @@ module RubyLie
       else
         raise TypeError, "#{a.class} (#{a}) must be Numeric, Sqrt, or Matrix"
       end
+    end
+    
+    def /(a) #/
+      return self.to_f / a.to_f
     end
     
     def **(a)

@@ -34,7 +34,7 @@ module RubyLie
       end
     end
 
-  #protected
+  protected
 
     def generate_tree
       @levels = Array.new

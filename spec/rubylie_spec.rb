@@ -38,6 +38,10 @@ describe RubyLie::Sqrt do
     expect(RubyLie::Sqrt.of(3)*RubyLie::Sqrt.of(3)).to be == 3
     expect(RubyLie::Sqrt.of(4)*RubyLie::Sqrt.of(4)).to be == 4
   end
+  
+  it "<=> works" do
+    pending
+  end
 end
 
 describe RubyLie::Vector do
@@ -93,7 +97,7 @@ describe RubyLie::Algebra do
   algebra_list.each do |alg|
     
     context alg.to_s do
-      ranks = [1,2,3,4]
+      ranks = [1,2,3,4,5,6]
       
       ranks.each do |rank|
         algebra = RubyLie::Algebra.new(alg, rank)
@@ -280,12 +284,31 @@ describe RubyLie::Algebra do
           end
           it "the matrix representations agree with Cartan matrix" do
             (1..algebra.rank).each do |omega_i|
-              rep = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
-              e,f,h = rep.matrix_rep_efh
               
-              (1..algebra.rank).each do |i|
-                (1..algebra.rank).each do |j|
-                  expect(comm(h[i], e[j])).to be == algebra.cartan[j-1,i-1]*e[j]
+              # Only do if small enough to be computationally moderate
+              if algebra.rank <= 3
+                rep1 = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
+                e,f,h = rep1.matrix_rep_efh()
+                
+                (0..algebra.rank).each do |i|
+                  (0..algebra.rank).each do |j|
+                    expect(comm(h[i], e[j])).to be == algebra.extended_cartan[j,i]*e[j]
+                  end
+                end
+                
+                # Only do if small enough to be computationally moderate
+                if algebra.rank <= 2
+              
+                  (omega_i..algebra.rank).each do |omega_j|
+                    rep2 = RubyLie::HighestWeightRep.new(algebra.omega(omega_i) + algebra.omega(omega_j))
+                    e,f,h = rep2.matrix_rep_efh
+                    
+                    (1..algebra.rank).each do |i|
+                      (1..algebra.rank).each do |j|
+                        expect(comm(h[i], e[j])).to be == algebra.cartan[j-1,i-1]*e[j]
+                      end
+                    end
+                  end
                 end
               end
             end

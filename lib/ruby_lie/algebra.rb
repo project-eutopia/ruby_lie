@@ -10,6 +10,43 @@ module RubyLie
       
       @cartan = get_cartan
       @alpha_to_ortho_matrix = get_alpha_to_ortho_matrix
+      @extended_cartan = get_extended_cartan
+    end
+    
+    def to_latex
+      if self.is_dual?
+        return "#{self.base_type_to_char}^\\vee_#{@rank}"
+      else
+        return "#{self.base_type_to_char}_#{@rank}"
+      end
+    end
+    
+    def is_dual?
+      case @alg
+      when :alg_B_dual, :alg_C_dual, :alg_G_dual
+        return true
+      else
+        return false
+      end
+    end
+    
+    def base_type_to_char
+      case @alg
+      when :alg_A
+        return 'A'
+      when :alg_B, :alg_B_dual
+        return 'B'
+      when :alg_C, :alg_C_dual
+        return 'C'
+      when :alg_D
+        return 'D'
+      when :alg_E
+        return 'E'
+      when :alg_F
+        return 'F'
+      when :alg_G, :alg_G_dual
+        return 'G'
+      end        
     end
     
     def ==(a)
@@ -18,6 +55,10 @@ module RubyLie
     
     def fund_rep(i)
       return RubyLie::HighestWeightRep.new(omega(i))
+    end
+    
+    def highest_root
+      return -alpha(0)
     end
     
     # opts contains hash with :dual => true/false
@@ -53,6 +94,7 @@ module RubyLie
     def omega_dual(i)
       return omega(i, :dual => true)
     end
+
     
     def fundamental_rep(i)
       if i >= 1 and i <= rank
@@ -118,15 +160,13 @@ module RubyLie
     end
     
     def extended_cartan
-      return Matrix.build(@rank+1, @rank+1) do |row, col|
-        alpha(row) * alpha_dual(col)
-      end
+      @extended_cartan
     end
     
   end
   
   # These protected methods of Algebra are used within this module, but not outside
-  #protected
+  protected
     class Algebra
     
       def vec_to_type(vec, type)
@@ -263,6 +303,12 @@ module RubyLie
         end
       end
           
+      def get_extended_cartan
+        return Matrix.build(@rank+1, @rank+1) do |row, col|
+          alpha(row) * alpha_dual(col)
+        end
+      end
+    
       def get_cartan
         
         if @alg == :alg_A or @rank == 1

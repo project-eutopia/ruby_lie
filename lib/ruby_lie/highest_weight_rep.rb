@@ -1,12 +1,13 @@
 module RubyLie
   
   class HighestWeightRep
+    include Enumerable
     
     attr_reader :highest_weight
     attr_reader :algebra
+    attr_reader :chains
     
-    # opts can be {:affine => true/false}
-    def initialize(highest_weight, opts = nil)
+    def initialize(highest_weight)
       if not highest_weight.is_a? RubyLie::Vector
         raise TypeError "#{highest_weight.class} is not an instance of RubyLie::Vector"
       end
@@ -31,17 +32,12 @@ module RubyLie
       self.each_with_index do |node, index|
         @node_to_index_hash[node] = index
       end
+      
+      affinize_representation
 
       @chains = Hash.new
-      (1..@algebra.rank).each do |i|
+      (0..@algebra.rank).each do |i|
         @chains[i] = self.chain_hash(i)
-      end
-      
-      if opts and opts[:affine]
-        affinize_representation
-        @affine = true
-      else
-        @affine = false
       end
     end
     
@@ -60,7 +56,15 @@ module RubyLie
     
     # Add links in the chain for \alpha_0 root
     def affinize_representation
-      return if @affine
+      # TODO
+      # for now treat the disjoint D_2 case specially... somehow
+      if @algebra.alg == :alg_D and @algebra.rank == 2
+        @levels[0][0].add_child_from_simple_root(@levels[0][0], 0)
+        @levels[0][0].add_parent_from_simple_root(@levels[0][0], 0)
+        @levels[0][1].add_child_from_simple_root(@levels[0][1], 0)
+        @levels[0][1].add_parent_from_simple_root(@levels[0][1], 0)
+      end
+        
       
       # Loop through all weights and find those where we can subtract alpha_0
       #
@@ -69,13 +73,28 @@ module RubyLie
       # -p = q + weight * alpha_0^\\vee
       #
       # Going down the chain in order means that we can assume q=0 for each we find
+      alpha_0 = @algebra.alpha(0)
       alpha_0_dual = @algebra.alpha(0, :dual => true)
       
       self.each do |node|
-        abs_p = node.weight * alpha_0_dual
+        abs_p = node.get_q(0) + node.weight * alpha_0_dual
+#        puts "abs_p = #{abs_p}"
+
+        cur_node = node
+        while abs_p > 0
+          new_weight = cur_node.weight - alpha_0
+          
+          # Find the next node
+          next_node = self.find do |node_to_compare|
+            node_to_compare.weight == new_weight
+          end
+          
+          cur_node.add_child_from_simple_root(next_node, 0)
+          next_node.add_parent_from_simple_root(cur_node, 0)
+          cur_node = next_node
+          abs_p -= 1
+        end
       end
-      
-      @affine = true
     end
     
     def each
@@ -202,9 +221,9 @@ module RubyLie
 
     # TODO implement highest root, and sqrt factors
     def matrix_rep(i)
-
+      
       size = @node_to_index_hash.size
-      e = Matrix.zero(size)
+      hash_of_rowcol_to_val = Hash.new
 
       (0..self.num_chains(i)).each do |chain_num|
         self.each_chain_with_index(i, chain_num) do |node, node_num|
@@ -214,15 +233,18 @@ module RubyLie
             # So we use the normalization:
             #   J^- |j,m> = sqrt(j(j+1) - m(m-1)) |j,m-1>
             # and note that J^- = transpose(J^+) to get the following coefficient
-            c = Sqrt.of(node_num * (chain_length(i,chain_num) - node_num))
-            e += c*E(@node_to_index_hash[node.parents[i]],
-                     @node_to_index_hash[node],
-                     size)
+            hash_of_rowcol_to_val[[@node_to_index_hash[node.parents[i]],@node_to_index_hash[node]]] = Sqrt.of(node_num * (chain_length(i,chain_num) - node_num))
           end
         end
       end
       
-      return e
+      return Matrix.build(size, size) do |row,col|
+        if hash_of_rowcol_to_val[[row,col]]
+          hash_of_rowcol_to_val[[row,col]]
+        else
+          0
+        end
+      end
     end
     
     def matrix_rep_efh
@@ -230,13 +252,29 @@ module RubyLie
       f = Hash.new
       h = Hash.new
       
-      (1..@algebra.rank).each do |i|
+      (0..@algebra.rank).each do |i|
         e[i] = matrix_rep(i)
         f[i] = e[i].t
         h[i] = e[i]*f[i] - f[i]*e[i]
       end
       
       return [e, f, h]
+    end
+    
+    def sum_of_simple_roots_matrix
+      res = Matrix.zero(self.size, self.size)
+      (0..@algebra.rank).each do |i|
+        res += matrix_rep(i)
+      end
+      return res
+    end
+    
+    def sum_of_coxeter_weighted_matrix_reps
+      res = Matrix.zero(self.size, self.size)
+      (0..@algebra.rank).each do |i|
+        res += RubyLie::Sqrt.of(@algebra.coxeter_label(i, :dual => true)) * matrix_rep(i)
+      end
+      return res
     end
     
     def to_s
@@ -249,11 +287,7 @@ module RubyLie
     end
     
     def to_latex
-      latex =  "\\documentclass{article}\n"
-      latex += "\\usepackage{tikz}\n"
-      latex += "\\usetikzlibrary{arrows}\n"
-      latex += "\\begin{document}\n"
-      latex += "\\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3cm,\n"
+      latex  = "\\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.4cm,\n"
       latex += "                    thick,main node/.style={draw,font=\\sffamily\\large\\bfseries}]\n"
       latex += "\n"
 
@@ -280,20 +314,24 @@ module RubyLie
       latex += @levels.each_with_index.inject("") do |res, (level, index)|
         res + level.each_with_index.inject("") do |res2, (node, index2)|
           res2 + "    (h_#{index}_#{index2})\n" + node.children.inject("") do |res3, (key, node2)|
-            s = res3 + "        edge node {$\\alpha_#{key}$} (h_#{index+1}_"
-            @levels[index+1].each_with_index do |node_to_check, index3|
-              if node_to_check.weight == node2.weight
-                s += "#{index3})\n"
+            # TODO for now, just skip the arrows that loop back through the alpha_0 root
+            if key != 0
+              s = res3 + "        edge node {$\\alpha_#{key}$} (h_#{index+1}_"
+              @levels[index+1].each_with_index do |node_to_check, index3|
+                if node_to_check.weight == node2.weight
+                  s += "#{index3})\n"
+                end
               end
+              s
+            else
+              res3
             end
-            s
           end
         end
       end
       
       latex += "  ;\n"
       latex += "\\end{tikzpicture}\n"
-      latex += "\\end{document}\n"
     end
   
   #protected

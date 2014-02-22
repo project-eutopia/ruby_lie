@@ -35,6 +35,47 @@ module RubyLie
       vec_in_omega.coeffs.map {|i| i}.to_a[0]
     end
     
+    def type_to_latex(type)
+      case type
+      when :alpha
+        "\\alpha"
+      when :alpha_dual
+        "\\alpha^\\vee"
+      when :omega
+        "\\omega"
+      when :omega_dual
+        "\\omega^\\vee"
+      when :ortho
+        "e"
+      end
+    end
+    
+    def to_latex
+      latex = ""
+      first = true
+      self.coeffs.each_with_index do |label, row, col|
+        if label != 0
+          if first
+            first = false
+          else
+            if label > 0
+              latex += " + "
+            else
+              latex += " - "
+            end
+          end
+          if label == 1
+            label = ""
+          else
+            label = label.abs
+          end
+          latex += "#{label} #{type_to_latex(@type)}_{#{col+1}}"
+        end
+      end
+      
+      return latex
+    end
+    
     def +(v)
       case v
       when Numeric
