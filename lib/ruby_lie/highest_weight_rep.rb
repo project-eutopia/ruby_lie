@@ -44,6 +44,11 @@ module RubyLie
     def size
       @node_to_index_hash.size
     end
+
+    # Calculated via equation dim(Lambda) = Product_{positive roots} (alpha * (Lambda + rho)) / (alpha * rho)
+    def dimension
+      @highest_weight.dimension
+    end
     
     def node_at_index(index)
       @node_to_index_hash.each do |cur_node, cur_index|
@@ -219,11 +224,22 @@ module RubyLie
       return ret_hash
     end
 
-    # TODO implement highest root, and sqrt factors
     def matrix_rep(i)
       
+      hash_of_rowcol_to_val = self.get_hash_of_rowcol_to_val(i)
+      
+      return Matrix.build(size, size) do |row,col|
+        if hash_of_rowcol_to_val[[row,col]]
+          hash_of_rowcol_to_val[[row,col]]
+        else
+          0
+        end
+      end
+    end
+
+    def get_hash_of_rowcol_to_val(i)
       size = @node_to_index_hash.size
-      hash_of_rowcol_to_val = Hash.new
+      h = Hash.new
 
       (0..self.num_chains(i)).each do |chain_num|
         self.each_chain_with_index(i, chain_num) do |node, node_num|
@@ -233,18 +249,12 @@ module RubyLie
             # So we use the normalization:
             #   J^- |j,m> = sqrt(j(j+1) - m(m-1)) |j,m-1>
             # and note that J^- = transpose(J^+) to get the following coefficient
-            hash_of_rowcol_to_val[[@node_to_index_hash[node.parents[i]],@node_to_index_hash[node]]] = Sqrt.of(node_num * (chain_length(i,chain_num) - node_num))
+            h[[@node_to_index_hash[node.parents[i]],@node_to_index_hash[node]]] = Sqrt.of(node_num * (chain_length(i,chain_num) - node_num))
           end
         end
       end
-      
-      return Matrix.build(size, size) do |row,col|
-        if hash_of_rowcol_to_val[[row,col]]
-          hash_of_rowcol_to_val[[row,col]]
-        else
-          0
-        end
-      end
+
+      return h
     end
     
     def matrix_rep_efh

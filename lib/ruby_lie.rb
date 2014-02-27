@@ -1,12 +1,24 @@
 require "ruby_lie/version"
 require 'matrix'
 
+class Numeric
+  def to_latex
+    self.to_s
+  end
+end
+
+class String
+  def to_latex
+    self.to_s
+  end
+end
+
 class Rational
-  def to_s
+  def to_latex
     if self.denominator == 1
       "#{self.numerator}"
     else
-      super
+      "\\frac{#{self.numerator.to_latex}}{#{self.denominator.to_latex}}"
     end
   end
 end
@@ -31,6 +43,30 @@ class Matrix
     end
     latex += "\\end{#{type}}"
     return latex
+  end
+
+  def to_ortho_string(per_line = 7)
+    s = nil
+    count = 0
+    self.each_with_index do |e, row, col|
+      if e == 1
+        e = ""
+      elsif e == 0
+        next
+      end
+
+      count += 1
+      if count % per_line == 0
+        s += "\\\\ \n"
+      end
+       
+      if s.nil?
+        s = "#{e.to_latex} E_{#{row+1},#{col+1}}"
+      else
+        s += " + #{e.to_latex} E_{#{row+1},#{col+1}}"
+      end
+    end
+    return s
   end
 end
 

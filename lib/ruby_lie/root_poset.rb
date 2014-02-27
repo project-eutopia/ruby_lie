@@ -1,6 +1,7 @@
 module RubyLie
   
   class RootPoset
+    include Enumerable
     
     attr_reader :algebra
     
@@ -32,6 +33,10 @@ module RubyLie
           yield node.weight
         end
       end
+    end
+
+    def levels
+      @levels
     end
 
   protected
@@ -103,9 +108,6 @@ module RubyLie
       end
     end
     
-    def levels
-      @levels
-    end
   end
   
 end

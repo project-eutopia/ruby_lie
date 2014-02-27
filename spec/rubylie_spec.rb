@@ -92,7 +92,7 @@ end
 
 describe RubyLie::Algebra do
   
-  algebra_list = [:alg_A, :alg_B, :alg_C, :alg_D]
+  algebra_list = [:alg_A, :alg_B, :alg_C, :alg_D, :alg_E, :alg_G]
   
   algebra_list.each do |alg|
     
@@ -100,6 +100,14 @@ describe RubyLie::Algebra do
       ranks = [1,2,3,4,5,6]
       
       ranks.each do |rank|
+        if (alg == :alg_G and rank != 2)
+          next
+        elsif (alg == :alg_D and rank == 2)
+          next
+        elsif alg == :alg_E and (rank < 6 or rank > 8)
+          next
+        end
+        
         algebra = RubyLie::Algebra.new(alg, rank)
         
         context ("r=" + rank.to_s) do
@@ -278,6 +286,14 @@ describe RubyLie::Algebra do
           it "highest root from poset agrees with -alpha_0" do
             expect(poset.highest_root).to be == -algebra.alpha(0)
           end
+
+          it "dimension of highest weight agrees with Weyl dimension formula" do
+            pending "need to handle multiplicities"
+            (1..algebra.rank).each do |omega_i|
+              rep = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
+              expect(rep.size).to be == rep.dimension
+            end
+          end
           
           def comm(a,b)
             return a*b-b*a
@@ -288,6 +304,10 @@ describe RubyLie::Algebra do
               # Only do if small enough to be computationally moderate
               if algebra.rank <= 3
                 rep1 = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
+                if rep1.size > 50
+                  next
+                end
+                
                 e,f,h = rep1.matrix_rep_efh()
                 
                 (0..algebra.rank).each do |i|

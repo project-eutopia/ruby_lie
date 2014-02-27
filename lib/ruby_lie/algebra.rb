@@ -64,8 +64,13 @@ module RubyLie
     # opts contains hash with :dual => true/false
     def alpha(i, opts = {})
       if i == 0
-        return RubyLie::Vector.new(Matrix.row_vector(rank.times.map {|j| Rational(-coxeter_label(j+1, opts),coxeter_label(0, opts))}),
-                                  opts[:dual] ? :alpha_dual : :alpha, self)
+        if coxeter_label(0, opts) == 1
+          return RubyLie::Vector.new(Matrix.row_vector(rank.times.map {|j| -coxeter_label(j+1, opts)}),
+                                    opts[:dual] ? :alpha_dual : :alpha, self)
+        else
+          return RubyLie::Vector.new(Matrix.row_vector(rank.times.map {|j| Rational(-coxeter_label(j+1, opts),coxeter_label(0, opts))}),
+                                    opts[:dual] ? :alpha_dual : :alpha, self)
+        end
       elsif i > 0 and i <= rank
         return RubyLie::Vector.new(Matrix.row_vector(rank.times.map {|j| i == (j+1) ? 1 : 0}),
                                   opts[:dual] ? :alpha_dual : :alpha, self)
@@ -95,6 +100,9 @@ module RubyLie
       return omega(i, :dual => true)
     end
 
+    def root_poset
+      return RubyLie::RootPoset.new(self)
+    end
     
     def fundamental_rep(i)
       if i >= 1 and i <= rank
@@ -125,13 +133,17 @@ module RubyLie
       if @alg == :alg_A or @rank == 1
         return 1
         
-      elsif @alg == :alg_B
+      elsif @alg == :alg_B or @alg == :alg_B_dual
         if i <= 1
           return 1
         elsif i < @rank
           return 2
         elsif i == @rank
-          return opts[:dual] ? 1 : 2
+          if (opts[:dual] and @alg == :alg_B) or (not opts[:dual] and @alg == :alg_B_dual)
+            return 1
+          else
+            return 2
+          end
         end
         
       elsif @alg == :alg_C
@@ -151,11 +163,92 @@ module RubyLie
         else
           return 2
         end
+
+      elsif @alg == :alg_E
+        case @rank
+        when 6
+          case i
+          when 0
+            return 1
+          when 1, 5
+            return 1
+          when 2, 4, 6
+            return 2
+          when 3
+            return 3
+          end
+
+        when 7
+          case i
+          when 0, 1
+            return 1
+          when 2, 6, 7
+            return 2
+          when 3, 5
+            return 3
+          when 4
+            return 4
+          end
+
+        when 8
+          case i
+          when 0
+            return 1
+          when 1, 7
+            return 2
+          when 2, 8
+            return 3
+          when 3, 6
+            return 4
+          when 4
+            return 5
+          when 5
+            return 6
+          end
+        end
+
+      elsif @alg == :alg_F
+        case i
+        when 0
+          return 1
+        when 1
+          return 2
+        when 2
+          return 3
+        when 3
+          if opts[:dual]
+            return 2
+          else
+            return 4
+          end
+        when 4
+          if opts[:dual]
+            return 1
+          else
+            return 2
+          end
+        end
+
+      elsif @alg == :alg_G
+        if i == 0
+          return 1
+        elsif i == 1
+          return 2
+        elsif i == 2
+          if opts[:dual]
+            return 1
+          else
+            return 3
+          end
+        end
         
       else
         # TODO other algebras
       end
-      
+
+      puts @alg
+      puts @rank
+      puts i
       raise RubyLie::NotSupportedException.new
     end
     
@@ -166,7 +259,7 @@ module RubyLie
   end
   
   # These protected methods of Algebra are used within this module, but not outside
-  protected
+  #protected
     class Algebra
     
       def vec_to_type(vec, type)
@@ -216,7 +309,7 @@ module RubyLie
           
         when :ortho
           # First go to alpha
-          if @alg == :alg_A or @rank == 1
+          if @alg == :alg_A or @rank == 1 or @alg == :alg_G
             # In orthonormal basis, sum of coefficients must be zero
             sum = vec.coeffs.inject(0) {|res, elem| res+elem}
             # Remove redundant last element
@@ -287,6 +380,13 @@ module RubyLie
             return 2
           end
           
+        elsif @alg == :alg_B_dual
+          if i == @rank
+            return 1
+          else
+            return 2
+          end
+          
         elsif @alg == :alg_C
           if i == 0 or i == @rank
             return 1
@@ -296,6 +396,24 @@ module RubyLie
           
         elsif @alg == :alg_D
           return 1
+
+        elsif @alg == :alg_E
+          return 1
+
+        elsif @alg == :alg_F
+          if i <= 2
+            return 1
+          else
+            return 2
+          end
+          
+
+        elsif @alg == :alg_G
+          if i == 0 or i == 1
+            return 1
+          else
+            return 3
+          end
           
         else
           # TODO other cases
@@ -335,7 +453,7 @@ module RubyLie
             end
           end
 
-        elsif @alg == :alg_C
+        elsif @alg == :alg_C or @alg == :alg_B_dual
           return Matrix.build(@rank, @rank) do |row, col|
             if row == col
               2
@@ -360,6 +478,53 @@ module RubyLie
               -1
             else
               0
+            end
+          end
+
+        elsif @alg == :alg_E
+          return Matrix.build(@rank, @rank) do |row, col|
+            if row == col
+              2
+            elsif row+1 == @rank
+              if col == @rank-4
+                -1
+              else
+                0
+              end
+            elsif col+1 == @rank
+              if row == @rank-4
+                -1
+              else
+                0
+              end
+            elsif row == col+1 or row == col-1
+              -1
+            else
+              0
+            end
+          end
+
+        elsif @alg == :alg_F
+          return Matrix.build(@rank, @rank) do |row, col|
+            if row == col
+              2
+            elsif row+1 == 2 and col+1 == 3
+              -2
+            elsif row == col+1 or row == col-1
+              -1
+            else
+              0
+            end
+          end
+
+        elsif @alg == :alg_G
+          return Matrix.build(2,2) do |row,col|
+            if row == col
+              2
+            elsif row == 0 and col == 1
+              -3
+            else
+              -1
             end
           end
 
@@ -394,15 +559,15 @@ module RubyLie
             end
           end
 
-        elsif @alg == :alg_C
+        elsif @alg == :alg_C or @alg == :alg_B_dual
           # TODO should actually scale by 1/sqrt(2)
           return Matrix.build(@rank, @rank) do |row, col|
             if row == col and row == @rank-1
-              2
+              RubyLie::Sqrt.of(2)
             elsif row == col
-              1
+              RubyLie::Sqrt.of(2)*Rational(1,2)
             elsif row+1 == col
-              -1
+              RubyLie::Sqrt.of(2)*Rational(-1,2)
             else
               0
             end
@@ -420,6 +585,59 @@ module RubyLie
               1
             elsif row+1 == col
               -1
+            else
+              0
+            end
+          end
+
+        elsif @alg == :alg_E
+          return Matrix.build(@rank, @rank) do |row, col|
+            if row == @rank-2
+              if col != @rank-1
+                Rational(-1,2)
+              else
+                case @rank
+                when 6
+                  RubyLie::Sqrt.of(3)*Rational(1, 2)
+                when 7
+                  RubyLie::Sqrt.of(2)*Rational(1, 2)
+                when 8
+                  Rational(-1,2)
+                end
+              end
+            elsif row == @rank-1
+              if col == @rank-2
+                -1
+              elsif col == @rank-3
+                1
+              else
+                0
+              end
+            else
+              if row == col
+                1
+              elsif row+1 == col
+                -1
+              else
+                0
+              end
+            end
+          end
+
+        elsif @alg == :alg_F
+          Matrix[[0, 1,-1, 0],
+                 [0, 0, 1,-1],
+                 [0, 0, 0, 1],
+                 [Rational(1,2), Rational(-1,2), Rational(-1,2), Rational(-1,2)]]
+
+        elsif @alg == :alg_G
+          return Matrix.build(2, 3) do |row, col|
+            if row == col and row == 0
+              1
+            elsif row+col % 2 == 1
+              -1
+            elsif row == 1 and col == 1
+              2
             else
               0
             end

@@ -34,6 +34,34 @@ module RubyLie
       vec_in_omega = self.to_type(:omega)
       vec_in_omega.coeffs.map {|i| i}.to_a[0]
     end
+
+    def dominant?
+      dynkin_labels.each do |label|
+        if label < 0
+          return false
+        end
+      end
+
+      return true
+    end
+
+    # Calculated via equation dim(Lambda) = Product_{positive roots} (alpha * (Lambda + rho)) / (alpha * rho)
+    def dimension
+      if not dominant?
+        return 0
+      end
+      
+      prod = 1
+      
+      poset = RubyLie::RootPoset.new(@algebra)
+      rho = @algebra.weyl_vector
+      
+      poset.each do |root|
+        prod *= Rational(root * (self + rho), root * rho)
+      end
+
+      return prod.denominator == 1 ? prod.numerator : prod
+    end
     
     def type_to_latex(type)
       case type
@@ -64,12 +92,17 @@ module RubyLie
               latex += " - "
             end
           end
-          if label == 1
+
+          if label.is_a? Rational and label.denominator == 1
+            label = label.numerator
+          end
+          
+          if label.abs == 1
             label = ""
           else
             label = label.abs
           end
-          latex += "#{label} #{type_to_latex(@type)}_{#{col+1}}"
+          latex += "#{label.to_latex} #{type_to_latex(@type)}_{#{col+1}}"
         end
       end
       

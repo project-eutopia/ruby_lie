@@ -80,14 +80,14 @@ module RubyLie
     
     def to_latex
       if @sqrt_part == 1
-        "#{@front_part}"
+        "#{@front_part.to_latex}"
       elsif @sqrt_part == 0 or @front_part == 0
         "0"
       else
         if @front_part == 1
-          "\\sqrt{#{@sqrt_part}}"
+          "\\sqrt{#{@sqrt_part.to_latex}}"
         else
-          "#{@front_part} * \\sqrt{#{@sqrt_part}}"
+          "#{@front_part.to_latex} \\sqrt{#{@sqrt_part.to_latex}}"
         end
       end
     end
@@ -150,11 +150,23 @@ module RubyLie
     end
     
     def /(a) #/
-      return self.to_f / a.to_f
+      if a.is_a? Integer
+        return Sqrt.new(@sqrt_part, @front_part * Rational(1,a)).simplify()
+      elsif a.is_a? Numeric
+        return Sqrt.new(@sqrt_part, @front_part / a).simplify()
+      elsif a.is_a? RubyLie::Sqrt
+        return Sqrt.new(@sqrt_part*a.sqrt_part, @front_part / (a.sqrt_part*a.front_part)).simplify()
+      else
+        self.to_f / a.to_f
+      end
     end
     
     def **(a)
       return Sqrt.new(@sqrt_part ** a, @front_part ** a).simplify()
+    end
+
+    def quo(a)
+      return self / a
     end
     
     def ==(a)
