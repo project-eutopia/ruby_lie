@@ -68,6 +68,10 @@ class Matrix
     end
     return s
   end
+
+  def to_f
+    self.map {|e| e.to_f}
+  end
 end
 
 module RubyLie

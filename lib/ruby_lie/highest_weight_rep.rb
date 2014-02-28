@@ -297,7 +297,7 @@ module RubyLie
     end
     
     def to_latex
-      latex  = "\\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.4cm,\n"
+      latex  = "\\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.2cm,\n"
       latex += "                    thick,main node/.style={draw,font=\\sffamily\\large\\bfseries}]\n"
       latex += "\n"
 

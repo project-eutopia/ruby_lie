@@ -92,7 +92,7 @@ end
 
 describe RubyLie::Algebra do
   
-  algebra_list = [:alg_A, :alg_B, :alg_C, :alg_D, :alg_E, :alg_G]
+  algebra_list = [:alg_A, :alg_B, :alg_C, :alg_D, :alg_E, :alg_F, :alg_G]
   
   algebra_list.each do |alg|
     
@@ -101,6 +101,8 @@ describe RubyLie::Algebra do
       
       ranks.each do |rank|
         if (alg == :alg_G and rank != 2)
+          next
+        elsif (alg == :alg_F and rank != 4)
           next
         elsif (alg == :alg_D and rank == 2)
           next
@@ -302,7 +304,7 @@ describe RubyLie::Algebra do
             (1..algebra.rank).each do |omega_i|
               
               # Only do if small enough to be computationally moderate
-              if algebra.rank <= 3
+              if algebra.rank <= 4
                 rep1 = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
                 if rep1.size > 50
                   next

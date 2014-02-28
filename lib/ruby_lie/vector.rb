@@ -150,6 +150,18 @@ module RubyLie
       end
     end
 
+    def **(n)
+      case n
+      when Integer
+        if n > 0
+          return n.times.inject(1) {|res, elem| res * self}
+        end
+      end
+
+      raise TypeError, "#{n} should be positive integer to exponentiate on #{self.class}"
+    end
+        
+
     # Borrowed from Matrix source
     #
     # The coerce method provides support for Ruby type coercion.
