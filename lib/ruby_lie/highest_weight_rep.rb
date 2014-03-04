@@ -6,6 +6,8 @@ module RubyLie
     attr_reader :highest_weight
     attr_reader :algebra
     attr_reader :chains
+
+    attr_reader :levels
     
     def initialize(highest_weight)
       if not highest_weight.is_a? RubyLie::Vector
@@ -453,9 +455,6 @@ module RubyLie
       @root
     end
     
-    def levels
-      @levels
-    end
   end
   
 end

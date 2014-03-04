@@ -1,8 +1,9 @@
 module RubyLie
   
   class RootPoset
+    include Enumerable
     
-    attr_reader :algebra
+    attr_reader :algebra, :levels
     
     def initialize(algebra)
       if algebra.is_a? RubyLie::Algebra
@@ -32,10 +33,6 @@ module RubyLie
           yield node.weight
         end
       end
-    end
-
-    def levels
-      @levels
     end
 
   protected
