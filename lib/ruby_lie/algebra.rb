@@ -12,6 +12,10 @@ module RubyLie
       @alpha_to_ortho_matrix = get_alpha_to_ortho_matrix
       @extended_cartan = get_extended_cartan
     end
+
+    def root_poset
+      @root_poset ||= RubyLie::RootPoset.new(self)
+    end
     
     def to_latex
       if self.is_dual?
@@ -255,7 +259,7 @@ module RubyLie
     def extended_cartan
       @extended_cartan
     end
-    
+
   end
   
   # These protected methods of Algebra are used within this module, but not outside

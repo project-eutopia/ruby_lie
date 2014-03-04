@@ -108,6 +108,9 @@ describe RubyLie::Algebra do
           next
         elsif alg == :alg_E and (rank < 6 or rank > 8)
           next
+        # Only do moderate small cases for the infinite series
+        elsif alg != :alg_E and (rank > 4)
+          next
         end
         
         algebra = RubyLie::Algebra.new(alg, rank)
@@ -275,8 +278,39 @@ describe RubyLie::Algebra do
 
             end
           end
-          
-          poset = RubyLie::RootPoset.new(algebra)
+
+          poset = algebra.root_poset
+          it "weyl reflection is nilpotent" do
+            orig_simple_roots = (0..algebra.rank).map {|i| algebra.alpha(i)}
+
+            # Permute by each of the possible positive roots
+            poset.each do |positive_root|
+              orig_simple_roots.each do |simple|
+                expect(simple).to be == simple.weyl_reflect_by(positive_root).weyl_reflect_by(positive_root)
+              end
+            end
+          end
+
+          it "weyl reflection by self gives minus self" do
+            (0..algebra.rank).each do |i|
+              simple_root = algebra.alpha(i)
+              expect(simple_root).to be == -simple_root.weyl_reflect_by(simple_root)
+            end
+          end
+
+          it "weyl reflection preserves inner product" do
+            poset.each do |positive_root|
+              (0..algebra.rank).each do |i|
+                alphai = algebra.alpha(i)
+                (0..algebra.rank).each do |j|
+                  alphaj = algebra.alpha(j)
+                  expect(alphai*alphaj).to be == alphai.weyl_reflect_by(positive_root) * alphaj.weyl_reflect_by(positive_root)
+                end
+              end
+            end
+          end
+
+          poset = algebra.root_poset
           it "half of sum of positive roots == weyl vector" do
             sum_positive = 0
             poset.each do |root|
@@ -289,11 +323,48 @@ describe RubyLie::Algebra do
             expect(poset.highest_root).to be == -algebra.alpha(0)
           end
 
-          it "dimension of highest weight agrees with Weyl dimension formula" do
-            pending "need to handle multiplicities"
+          it "dimension of highest weight with multiplicities agrees with Weyl dimension formula" do
             (1..algebra.rank).each do |omega_i|
-              rep = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
-              expect(rep.size).to be == rep.dimension
+              if algebra.omega(omega_i).dimension < 50
+                rep = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
+                expect(rep.size_w_multiplicities).to be == rep.dimension
+              end
+            end
+          end
+
+          it "multiplicity agrees with cases when node is in middle of root chain" do
+            pending "multiplicity... not sure how it works exactly yet"
+            (1..algebra.rank).each do |omega_i|
+              if algebra.omega(omega_i).dimension < 50
+                rep = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
+                
+                rep.each do |node|
+                  cur_sum = 0
+                  parents = 0
+                  (1..algebra.rank).each do |i|
+                    if node.parents[i] and node.children[i]
+                      cur_sum += 1
+                    end
+                    if parents[i]
+                      parents += 1
+                    end
+                  end
+                  if parents == 0
+                    expect(rep.multiplicity(node)).to be == 1
+                  else
+                    if rep.multiplicity(node) != 1
+                      expect(parents).to be == rep.multiplicity(node)
+                    end
+                  end
+                  
+                  if cur_sum == 0
+                    expect(rep.multiplicity(node)).to be == 1
+                  else
+                    expect(cur_sum).to be == rep.multiplicity(node)
+                  end
+                end
+                
+              end
             end
           end
           
@@ -304,11 +375,11 @@ describe RubyLie::Algebra do
             (1..algebra.rank).each do |omega_i|
               
               # Only do if small enough to be computationally moderate
-              if algebra.rank <= 4
-                rep1 = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
-                if rep1.size > 50
+              if algebra.rank <= 6
+                if algebra.omega(omega_i).dimension > 50
                   next
                 end
+                rep1 = RubyLie::HighestWeightRep.new(algebra.omega(omega_i))
                 
                 e,f,h = rep1.matrix_rep_efh()
                 

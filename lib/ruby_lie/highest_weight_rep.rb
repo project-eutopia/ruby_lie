@@ -49,6 +49,12 @@ module RubyLie
     def dimension
       @highest_weight.dimension
     end
+
+    def size_w_multiplicities
+      self.inject(0) do |res, node|
+        res + multiplicity(node)
+      end
+    end
     
     def node_at_index(index)
       @node_to_index_hash.each do |cur_node, cur_index|
@@ -286,6 +292,36 @@ module RubyLie
       end
       return res
     end
+
+    def multiplicity(node)
+      return @node_to_multiplicity[node] if @node_to_multiplicity[node]
+      return 1 if node.weight == @highest_weight
+      
+      coeff = Rational(2,(@highest_weight+@algebra.weyl_vector)**2 - (node.weight+@algebra.weyl_vector)**2)
+
+      sum = 0
+      
+      @algebra.root_poset.each do |positive_root|
+        m = 1
+        loop do
+          # Find the node corresponding to this + m*positive_root
+          above = self.find do |node_to_compare|
+            node_to_compare.weight == (node.weight + m*positive_root)
+          end
+
+          if above
+            # Found it!
+            # TODO super very inefficient!
+            sum += (node.weight+m*positive_root)*positive_root * multiplicity(above)
+            m += 1
+          else
+            break
+          end
+        end
+      end
+
+      coeff*sum
+    end
     
     def to_s
       return "\#<RubyLie::HighestWeightRep \n" +
@@ -350,6 +386,8 @@ module RubyLie
       @root = Node.new(@highest_weight)
       @levels = Array.new
       @levels[0] = [@root]
+
+      @node_to_multiplicity = Hash.new
       
       cur_level = 0
       loop do
@@ -386,6 +424,8 @@ module RubyLie
               if overlapping_node
                 cur_node.add_child_from_simple_root(overlapping_node, i)
                 overlapping_node.add_parent_from_simple_root(cur_node, i)
+
+                @node_to_multiplicity[overlapping_node] = multiplicity(overlapping_node)
               else
                 vec_node = Node.new(vec)
 
@@ -393,6 +433,8 @@ module RubyLie
                 vec_node.add_parent_from_simple_root(cur_node, i)
 
                 @levels[cur_level+1] << vec_node
+
+                @node_to_multiplicity[vec_node] = multiplicity(vec_node)
               end
             end
           end
