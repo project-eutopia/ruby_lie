@@ -53,7 +53,7 @@ module RubyLie
         @levels[1][i-1] = RubyLie::Node.new(0*@simple_roots[i-1])
         @levels[2][i-1] = RubyLie::Node.new(@simple_roots[i-1])
       end
-      
+
       cur_level = 2
       loop do
         has_next_level = false

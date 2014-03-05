@@ -21,3 +21,29 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 end
+
+
+
+# Setup list of algebras to check in our tests
+ALGEBRAS = Array.new
+
+alg_list = [:alg_A, :alg_B, :alg_C, :alg_D, :alg_E, :alg_F, :alg_G]
+ranks = [1,2,3,4,5,6]
+
+alg_list.each do |alg|
+  ranks.each do |rank|
+    if (alg == :alg_G and rank != 2)
+      next
+    elsif (alg == :alg_F and rank != 4)
+      next
+    elsif (alg == :alg_D and rank == 2)
+      next
+    elsif alg == :alg_E and (rank < 6 or rank > 8)
+      next
+    # Only do moderate small cases for the infinite series
+    elsif alg != :alg_E and (rank > 4)
+      next
+    end
+    ALGEBRAS << RubyLie::Algebra.new(alg, rank)
+  end
+end
