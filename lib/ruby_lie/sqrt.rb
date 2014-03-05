@@ -10,9 +10,15 @@ module RubyLie
       return Sqrt.new(n, 1).simplify()
     end
 
-  # should not use publicly
+  # should not use publicly -- hide simplification
   protected
+    # when negative, choose to take the +i, not -i part (just like we
+    # implicitly choose to use the positive root)
     def initialize(sqrt_part, front_part = 1)
+      if sqrt_part < 0
+        sqrt_part *= -1
+        front_part *= Complex(0,1)
+      end
       @sqrt_part = sqrt_part
       @front_part = front_part
     end

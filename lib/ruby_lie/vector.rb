@@ -109,6 +109,10 @@ module RubyLie
       return latex
     end
 
+    def dual
+      return (2 / (self**2)) * self
+    end
+
     def weyl_reflect_by(alpha)
       self - (2 * (self*alpha) / alpha**2) * alpha
     end

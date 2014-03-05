@@ -5,9 +5,15 @@ module RubyLie
     
     attr_reader :algebra, :levels
     
-    def initialize(algebra)
+    def initialize(algebra, simple_roots = nil)
       if algebra.is_a? RubyLie::Algebra
         @algebra = algebra
+
+      if simple_roots and simple_roots.is_a? Array
+        @simple_roots = simple_roots
+      else
+        @simple_roots = (1..@algebra.rank).map { |i| @algebra.alpha(i) }
+      end
       
       # TODO F and G are fixed rank, and check rank of E type also
       elsif algebra[:alg] and algebra[:rank]
@@ -43,9 +49,9 @@ module RubyLie
       @levels[1] = Array.new
       @levels[2] = Array.new
       (1..@algebra.rank).each do |i|
-        @levels[0][i-1] = RubyLie::Node.new(-@algebra.alpha(i))
-        @levels[1][i-1] = RubyLie::Node.new(0*@algebra.alpha(i))
-        @levels[2][i-1] = RubyLie::Node.new(@algebra.alpha(i))
+        @levels[0][i-1] = RubyLie::Node.new(-@simple_roots[i-1])
+        @levels[1][i-1] = RubyLie::Node.new(0*@simple_roots[i-1])
+        @levels[2][i-1] = RubyLie::Node.new(@simple_roots[i-1])
       end
       
       cur_level = 2
@@ -64,9 +70,9 @@ module RubyLie
             p = cur_node.get_p(i)
             # q = -p - weight * alpha_i^\\vee
             # if q > 0, then we can add this simple root
-            if (-p - cur_node.weight * @algebra.alpha_dual(i)) > 0
+            if (-p - cur_node.weight * @simple_roots[i-1].dual) > 0
               has_next_level = true
-              vec = cur_node.weight + @algebra.alpha(i)
+              vec = cur_node.weight + @simple_roots[i-1]
               
               if @levels[cur_level+1].nil?
                 @levels[cur_level+1] = Array.new
