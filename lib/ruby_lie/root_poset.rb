@@ -1,5 +1,10 @@
 module RubyLie
-  
+
+# TODO: write mixin for "Representation" which deals with different types, like HighestWeightRep and RootPoset
+
+#TODO write RootPoset to_latex, or BETTER YET, WRITE IT IN REPRESENTATION, then print it out in
+#algebra document so that I can see which order of roots gives the highest weight from basic
+#elements: like [E_3, [E_2, E_1]]
   class RootPoset
     include Enumerable
     
@@ -49,9 +54,9 @@ module RubyLie
       @levels[1] = Array.new
       @levels[2] = Array.new
       (1..@algebra.rank).each do |i|
-        @levels[0][i-1] = RubyLie::Node.new(-@simple_roots[i-1])
-        @levels[1][i-1] = RubyLie::Node.new(0*@simple_roots[i-1])
-        @levels[2][i-1] = RubyLie::Node.new(@simple_roots[i-1])
+        @levels[0][i-1] = RubyLie::Node.new(:weight => -@simple_roots[i-1], :representation => self)
+        @levels[1][i-1] = RubyLie::Node.new(:weight => 0*@simple_roots[i-1], :representation => self)
+        @levels[2][i-1] = RubyLie::Node.new(:weight => @simple_roots[i-1], :representation => self)
       end
 
       cur_level = 2
@@ -90,7 +95,7 @@ module RubyLie
                 cur_node.add_parent_from_simple_root(overlapping_node, i)
                 overlapping_node.add_child_from_simple_root(cur_node, i)
               else
-                vec_node = RubyLie::Node.new(vec)
+                vec_node = RubyLie::Node.new(:weight => vec, :representation => self)
 
                 cur_node.add_parent_from_simple_root(vec_node, i)
                 vec_node.add_child_from_simple_root(cur_node, i)

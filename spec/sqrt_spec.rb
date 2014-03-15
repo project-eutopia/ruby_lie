@@ -40,7 +40,7 @@ describe RubyLie::Sqrt do
   end
   
   it "<=> works" do
-    pending
+    pending "TODO: write this code"
   end
 
   it "roots of negative numbers square to negative" do

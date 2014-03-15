@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe RubyLie::HighestWeightRep do
-  MAX_DIMENSION = 80
+  MAX_DIMENSION = 180
   
   ALGEBRAS.each do |algebra|
     context "#{algebra.to_latex}" do
@@ -11,6 +11,23 @@ describe RubyLie::HighestWeightRep do
       (1..algebra.rank).each do |i|
         if algebra.omega(i).dimension <= MAX_DIMENSION
           reps[i] = RubyLie::HighestWeightRep.new(algebra.omega(i))
+        end
+      end
+
+      it "POSTULATION: eigenvalue ratios with and without sqrt(coxeter_label) weighting is the same" do
+        ratio = nil
+        
+        reps.each_with_index do |rep, index|
+          next if rep.nil?
+          eigen_w_coxeter  = rep.sum_of_coxeter_weighted_matrix_reps.to_f.eigen.eigenvalues.max {|a,b| a.real <=> b.real}
+          eigen_wo_coxeter = rep.sum_of_simple_roots_matrix.to_f.eigen.eigenvalues.max {|a,b| a.real <=> b.real}
+          test_ratio = eigen_w_coxeter / eigen_wo_coxeter
+          
+          if ratio.nil?
+            ratio = test_ratio
+          else
+            (test_ratio).should be_within(0.0000001).of(ratio)
+          end
         end
       end
 
@@ -59,37 +76,51 @@ describe RubyLie::HighestWeightRep do
         end
       end
 
-      it "multiplicity agrees with cases when node is in middle of root chain" do
+      context "multiplicity agrees with cases when node is in middle of root chain" do
         pending "multiplicity... not sure how it works exactly yet"
         reps.each do |rep|
           next if rep.nil?
+      context "#{rep.highest_weight}" do
 
           rep.each do |node|
-            cur_sum = 0
+            p_and_c = 0
+            children = 0
             parents = 0
             (1..algebra.rank).each do |i|
-              if node.parents[i] and node.children[i]
-                cur_sum += 1
-              end
-              if parents[i]
+              if node.parents[i]
                 parents += 1
               end
-            end
-            if parents == 0
-              expect(rep.multiplicity(node)).to be == 1
-            else
-              if rep.multiplicity(node) != 1
-                expect(parents).to be == rep.multiplicity(node)
+              if node.children[i]
+                children += 1
               end
             end
             
-            if cur_sum == 0
-              expect(rep.multiplicity(node)).to be == 1
+            if parents == 0
+              it "#{node}, no parents" do
+                expect(rep.multiplicity(node)).to be == 1
+              end
             else
-              expect(cur_sum).to be == rep.multiplicity(node)
+              if rep.multiplicity(node) != 1
+                it "#{node}, parents: #{parents} and multi=#{rep.multiplicity(node)}" do
+                  expect(parents).to be == rep.multiplicity(node)
+                end
+              end
             end
+            
+            if children == 0
+              it "#{node}, no children" do
+                expect(rep.multiplicity(node)).to be == 1
+              end
+            else
+              if rep.multiplicity(node) != 1
+                it "#{node}, children: #{children} and multi=#{rep.multiplicity(node)}" do
+                  expect(children).to be == rep.multiplicity(node)
+                end
+              end
+            end
+            
           end
-
+      end
         end
       end
       

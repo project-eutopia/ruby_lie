@@ -2,7 +2,11 @@ module RubyLie
   
   class Algebra
 
-    attr_reader :cartan, :alg, :rank, :alpha_to_ortho_matrix
+    attr_reader :cartan
+    attr_reader :alg
+    attr_reader :rank
+    attr_reader :alpha_to_ortho_matrix
+    attr_reader :vector_rep
     
     def initialize(alg, rank)
       @alg = alg
@@ -11,6 +15,8 @@ module RubyLie
       @cartan = get_cartan
       @alpha_to_ortho_matrix = get_alpha_to_ortho_matrix
       @extended_cartan = get_extended_cartan
+
+      @vector_rep = RubyLie::HighestWeightRep.new(self.omega(1), false)
     end
 
     def root_poset

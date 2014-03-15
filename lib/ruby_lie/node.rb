@@ -1,20 +1,64 @@
 module RubyLie
   
   class Node
+    include Comparable
+
     attr_accessor :weight
+    attr_accessor :young_tableau
+
     attr_accessor :parents
     attr_accessor :children
+
+    attr_accessor :representation
     
-    def initialize(weight)
-      @weight   = weight
+    def initialize(params)
+      @weight   = params[:weight]
+      @young_tableau = params[:young_tableau]
+
       @parents  = Hash.new
       @children = Hash.new
+
+      @representation = params[:representation]
     end
-    
+
     def ==(other)
-      return @weight == other.weight
+      case other
+      when Node
+        return @weight == other.weight
+      else
+        raise TypeError, "#{other.class} must be Node"
+      end
     end
     
+    # Used to compare if this is "greater" than the other by using
+    # the levels within the representation as the comparator,
+    # where higher levels are "greater" than
+    # TODO YoungTableau comparison
+    def <=>(other)
+      case other
+      when Node
+        return @representation.node_to_level_hash[self] <=> @representation.node_to_level_hash[other]
+      else
+        raise TypeError, "#{other.class} must be Node"
+      end
+    end
+
+    def <=(other)
+      return (self <=> other) == 1 ? false : true
+    end
+
+    def >=(other)
+      return (self <=> other) == -1 ? false : true
+    end
+
+    def <(other)
+      return (self <=> other) == -1 ? true : false 
+    end 
+
+    def >(other)
+      return (self <=> other) == 1 ? true : false 
+    end 
+
     def get_q(index)
       q = 0
       cur_node = self
