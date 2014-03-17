@@ -7,7 +7,7 @@ module RubyLie
     
     def initialize(highest_weight, use_young_tableau = true)
       if not highest_weight.is_a? RubyLie::Vector
-        raise TypeError "#{highest_weight.class} is not an instance of RubyLie::Vector"
+        raise TypeError, "#{highest_weight.class} is not an instance of RubyLie::Vector"
       end
       
       highest_weight = highest_weight.to_type(:omega)
@@ -35,6 +35,7 @@ module RubyLie
 
 
     def size_w_multiplicities
+      return size()
       self.inject(0) do |res, node|
         res + multiplicity(node)
       end
@@ -113,15 +114,19 @@ module RubyLie
               overlapping_node = @levels[cur_level+1].find do |node_to_check|
                 # TODO change check to make sure that this weight is arrived at
                 # by the same simple roots?
-                if node_to_check.weight == vec
-                  # Check if Young tableau also agree
-                  if node_to_check.young_tableau == cur_node.young_tableau.next_tableau(i)
-                    true
+                if use_young_tableau
+                  if node_to_check.weight == vec
+                    # Check if Young tableau also agree
+                    if node_to_check.young_tableau == cur_node.young_tableau.next_tableau(i)
+                      true
+                    else
+                      false
+                    end
                   else
                     false
                   end
                 else
-                  false
+                  true
                 end
               end
 
@@ -132,7 +137,7 @@ module RubyLie
 
                 @node_to_multiplicity[overlapping_node] = multiplicity(overlapping_node)
               else
-                vec_node = Node.new(:weight => vec, :representation => self, :young_tableau => (top_tableau.nil?) ? nil : cur_node.young_tableau.next_tableau(i)) 
+                vec_node = Node.new(:weight => vec, :representation => self, :young_tableau => (top_tableau.nil? or not use_young_tableau) ? nil : cur_node.young_tableau.next_tableau(i)) 
 
                 cur_node.add_child_from_simple_root(vec_node, i)
                 vec_node.add_parent_from_simple_root(cur_node, i)

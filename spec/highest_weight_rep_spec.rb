@@ -76,53 +76,6 @@ describe RubyLie::HighestWeightRep do
         end
       end
 
-      context "multiplicity agrees with cases when node is in middle of root chain" do
-        pending "multiplicity... not sure how it works exactly yet"
-        reps.each do |rep|
-          next if rep.nil?
-      context "#{rep.highest_weight}" do
-
-          rep.each do |node|
-            p_and_c = 0
-            children = 0
-            parents = 0
-            (1..algebra.rank).each do |i|
-              if node.parents[i]
-                parents += 1
-              end
-              if node.children[i]
-                children += 1
-              end
-            end
-            
-            if parents == 0
-              it "#{node}, no parents" do
-                expect(rep.multiplicity(node)).to be == 1
-              end
-            else
-              if rep.multiplicity(node) != 1
-                it "#{node}, parents: #{parents} and multi=#{rep.multiplicity(node)}" do
-                  expect(parents).to be == rep.multiplicity(node)
-                end
-              end
-            end
-            
-            if children == 0
-              it "#{node}, no children" do
-                expect(rep.multiplicity(node)).to be == 1
-              end
-            else
-              if rep.multiplicity(node) != 1
-                it "#{node}, children: #{children} and multi=#{rep.multiplicity(node)}" do
-                  expect(children).to be == rep.multiplicity(node)
-                end
-              end
-            end
-            
-          end
-      end
-        end
-      end
       
       def comm(a,b)
         return a*b-b*a

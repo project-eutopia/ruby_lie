@@ -117,7 +117,6 @@ module RubyLie
         return nil
       end
       
-      # TODO ALL
       self.each_with_index do |elem, i,j|
         if elem.nil?
           raise TypeError
@@ -128,13 +127,25 @@ module RubyLie
             # Try this possible change
             if @rows[i][j+1] and @rows[i][j+1] < to
               next
-            elsif @rows[i+1] and @rows[i+1][j] and @rows[i+1][j] <= to
-              next
-            else
-              tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
-              tableau.rows[i][j] = to
-              return tableau
+            elsif @rows[i+1] and @rows[i+1][j]
+              # A and C type must be strictly increasing down a column
+              if (@vector_rep.algebra.alg == :alg_A or @vector_rep.algebra.alg == :alg_C) and @rows[i+1][j] <= to
+                next
+              elsif @vector_rep.algebra.alg == :alg_B and @rows[i+1][j] < to
+                next
+              elsif @vector_rep.algebra.alg == :alg_D
+                if @rows[i+1][j] < to
+                  next
+                # Allow the pair to be n and \bar{n}, but not other combinations
+                elsif (@rows[i+1][j] <=> to) == 0 and @vector_rep.node_to_level_hash[to] != @vector_rep.algebra.rank-1
+                  next
+                end
+              end
             end
+
+            tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
+            tableau.rows[i][j] = to
+            return tableau
           end
         end
       end

@@ -24,7 +24,15 @@ module RubyLie
     def ==(other)
       case other
       when Node
-        return @weight == other.weight
+        if @weight == other.weight
+          if @young_tableau and other.young_tableau
+            return @young_tableau == other.young_tableau
+          else
+            return true
+          end
+        else
+          return false
+        end
       else
         raise TypeError, "#{other.class} must be Node"
       end

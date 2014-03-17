@@ -186,6 +186,16 @@ module RubyLie
         raise TypeError, "#{self.class} can't be coerced into #{other.class}"
       end
     end
+
+    def zero?
+      @coeffs.each do |i|
+        if i != 0
+          return false
+        end
+      end
+
+      true
+    end
     
     def ==(v)
       return false if @algebra != v.algebra
