@@ -5,7 +5,7 @@ module RubyLie
 
     # The element of each row is a specific node from a vector representation
     attr_reader :rows
-    attr_reader :representation
+    attr_reader :vector_rep
 
     def initialize(params)
       if params[:vector_rep]
@@ -113,7 +113,7 @@ module RubyLie
     # Given hash of ways to increment each element of the Young tableau,
     # increment one such block going from right to left, top to bottom
     def next_tableau(root_index)
-      if @vector_rep.nil?
+      if @vector_rep.nil? or root_index > @vector_rep.algebra.rank
         return nil
       end
       

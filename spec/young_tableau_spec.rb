@@ -40,5 +40,19 @@ describe RubyLie::YoungTableau do
 
     tableau.next_tableau(2).should be == tableau2.next_tableau(2)
   end
+
+  it "check omega_2 of a3" do
+    a3 = RubyLie::Algebra.new(:alg_A, 3)
+    vec_rep = a3.vector_rep
+    top_tableau = RubyLie::YoungTableau.from_highest_weight(a3.omega(2))
+
+    top_tableau.next_tableau(1).should be_nil
+    top_tableau.next_tableau(2).should_not be_nil
+    top_tableau.next_tableau(3).should be_nil
+
+    next_tableau = top_tableau.next_tableau(2)
+
+    next_tableau.next_tableau(1).should_not be_nil
+  end
 end
 
