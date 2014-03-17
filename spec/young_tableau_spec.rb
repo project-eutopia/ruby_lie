@@ -29,5 +29,16 @@ describe RubyLie::YoungTableau do
 
     tableau.next_tableau(3).should be_nil
   end
+
+  it "check equality of simple case" do
+    a4 = RubyLie::Algebra.new(:alg_A, 4)
+    vec_rep = a4.vector_rep
+
+    tableau = RubyLie::YoungTableau.from_highest_weight(a4.omega(2))
+    tableau2 = RubyLie::YoungTableau.from_highest_weight(a4.omega(2))
+    tableau.should be == tableau2
+
+    tableau.next_tableau(2).should be == tableau2.next_tableau(2)
+  end
 end
 
