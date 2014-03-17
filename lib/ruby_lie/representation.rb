@@ -20,7 +20,7 @@ module RubyLie
       @node_to_level_hash = Hash.new
       @levels.each_with_index do |level, index|
         level.each do |node|
-          @node_to_level_hash[node] = level
+          @node_to_level_hash[node] = index
         end
       end
 
