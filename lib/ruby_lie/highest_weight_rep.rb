@@ -100,6 +100,7 @@ module RubyLie
           (1..@algebra.rank).each do |i|
             # Get q for the current node and simple root
             q = cur_node.get_q(i)
+
             # -p = q + weight * alpha_i^\\vee
             # if -p > 0, then we can subtract this simple root
             if (q + cur_node.weight * @algebra.alpha_dual(i)) > 0
@@ -114,8 +115,8 @@ module RubyLie
               overlapping_node = @levels[cur_level+1].find do |node_to_check|
                 # TODO change check to make sure that this weight is arrived at
                 # by the same simple roots?
-                if use_young_tableau
-                  if node_to_check.weight == vec
+                if node_to_check.weight == vec
+                  if use_young_tableau
                     # Check if Young tableau also agree
                     if node_to_check.young_tableau == cur_node.young_tableau.next_tableau(i)
                       true
@@ -123,10 +124,10 @@ module RubyLie
                       false
                     end
                   else
-                    false
+                    true
                   end
                 else
-                  true
+                  false
                 end
               end
 
@@ -135,7 +136,7 @@ module RubyLie
                 cur_node.add_child_from_simple_root(overlapping_node, i)
                 overlapping_node.add_parent_from_simple_root(cur_node, i)
 
-                @node_to_multiplicity[overlapping_node] = multiplicity(overlapping_node)
+                #@node_to_multiplicity[overlapping_node] = multiplicity(overlapping_node)
               else
                 vec_node = Node.new(:weight => vec, :representation => self, :young_tableau => (top_tableau.nil? or not use_young_tableau) ? nil : cur_node.young_tableau.next_tableau(i)) 
 
@@ -144,7 +145,7 @@ module RubyLie
 
                 @levels[cur_level+1] << vec_node
 
-                @node_to_multiplicity[vec_node] = multiplicity(vec_node)
+                #@node_to_multiplicity[vec_node] = multiplicity(vec_node)
               end
             end
           end

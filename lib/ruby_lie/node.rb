@@ -72,7 +72,6 @@ module RubyLie
       cur_node = self
       
       loop do
-        break if cur_node.parents.length == 0
         break if cur_node.parents[index].nil?
         cur_node = cur_node.parents[index]
         q += 1
