@@ -93,10 +93,11 @@ describe RubyLie::HighestWeightRep do
           end
           
           # Check more complicated cases
-          (index..algebra.rank).each do |i|
-            next if (algebra.omega(index) + algebra.omega(i)).dimension > MAX_DIMENSION
+          (index..algebra.rank).each do |index2|
+            next
+            next if (algebra.omega(index) + algebra.omega(index2)).dimension > MAX_DIMENSION
             
-            rep2 = RubyLie::HighestWeightRep.new(algebra.omega(index) + algebra.omega(i))
+            rep2 = RubyLie::HighestWeightRep.new(algebra.omega(index) + algebra.omega(index2))
             e,f,h = rep2.matrix_rep_efh
               
             (1..algebra.rank).each do |i|

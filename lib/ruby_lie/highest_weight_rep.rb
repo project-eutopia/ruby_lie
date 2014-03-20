@@ -21,6 +21,11 @@ module RubyLie
       
       @highest_weight = highest_weight.copy
       @algebra = @highest_weight.algebra
+
+      if @algebra.alg == :alg_A
+        # TODO : turn off young tableau for spinor representations
+        use_young_tableau = use_young_tableau
+      end
       
       # sets up @root, and @levels variables
       generate_tree(use_young_tableau)

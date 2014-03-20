@@ -115,9 +115,6 @@ module RubyLie
       end
     end
     
-    def levels
-      @levels
-    end
   end
   
 end

@@ -69,6 +69,10 @@ class Matrix
     return s
   end
 
+  #def to_s
+  #  elem_s = Array.new
+  #end
+
   def to_f
     self.map {|e| e.to_f}
   end

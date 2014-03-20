@@ -85,6 +85,23 @@ module RubyLie
       end
     end
     
+    def each_col_at(i)
+      (0..@rows.size-1).each do |row|
+        break if rows[row][i].nil?
+        yield rows[row][i], row
+      end
+    end
+
+    def each_col_at_backwards(i)
+      row = @rows.size-1
+      loop do
+        yield rows[row][i], row if rows[row][i].nil?
+        row -= 1
+        break if row == 0
+      end
+    end
+
+
     def ==(tableau)
       case tableau
       when YoungTableau
@@ -113,44 +130,80 @@ module RubyLie
     # Given hash of ways to increment each element of the Young tableau,
     # increment one such block going from right to left, top to bottom
     def next_tableau(root_index)
-      if @vector_rep.nil? or root_index > @vector_rep.algebra.rank
+      if @vector_rep.nil? or root_index > @vector_rep.algebra.rank or root_index < 0
         return nil
       end
       
-      self.each_with_index do |elem, i,j|
-        if elem.nil?
-          raise TypeError
+      if root_index > 0
+        col = rows[0].size-1
+        
+        loop do
+          tableau_test = try_col_with_root_index(col, root_index)
+          return tableau_test if not tableau_test.nil?
+          break if col <= 0
+          col -= 1
         end
-
-        @vector_rep.each_chain_link(root_index) do |from, to|
-          if from == elem
-            # Try this possible change
-            if @rows[i][j+1] and @rows[i][j+1] < to
-              next
-            elsif @rows[i+1] and @rows[i+1][j]
-              # A and C type must be strictly increasing down a column
-              if (@vector_rep.algebra.alg == :alg_A or @vector_rep.algebra.alg == :alg_C) and @rows[i+1][j] <= to
-                next
-              elsif @vector_rep.algebra.alg == :alg_B and @rows[i+1][j] < to
-                next
-              elsif @vector_rep.algebra.alg == :alg_D
-                if @rows[i+1][j] < to
-                  next
-                # Allow the pair to be n and \bar{n}, but not other combinations
-                elsif (@rows[i+1][j] <=> to) == 0 and @vector_rep.node_to_level_hash[to] != @vector_rep.algebra.rank-1
-                  next
-                end
-              end
-            end
-
-            tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
-            tableau.rows[i][j] = to
-            return tableau
-          end
+      elsif root_index == 0
+        (0..rows[0].size-1).each do |col|
+          tableau_test = try_col_with_root_index(col, root_index)
+          return tableau_test if not tableau_test.nil?
         end
       end
 
       return nil
+    end
+
+    def try_col_with_root_index(col, root_index)
+
+      if root_index >= 0
+        self.each_col_at(col) do |elem, row|
+
+          @vector_rep.each_chain_link(root_index) do |from, to|
+            if from == elem and try_next_tableau(row, col, to, root_index)
+              tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
+              tableau.rows[row][col] = to
+              return tableau
+            end
+          end
+              
+        end
+
+      elsif root_index == 0
+        self.each_col_at_backwards(col) do |elem, row|
+          return nil
+        end
+      else
+        return nil
+      end
+
+      return nil
+
+    end
+
+
+    def try_next_tableau(row, col, to, root_index)
+      # Try this possible change
+      if @rows[row][col+1] and @rows[row][col+1] < to
+        return false
+      elsif @rows[row+1] and @rows[row+1][col]
+
+        # A and C type must be strictly increasing down a column
+        if (@vector_rep.algebra.alg == :alg_A or @vector_rep.algebra.alg == :alg_C) and @rows[row+1][col] <= to
+          return false
+        elsif @vector_rep.algebra.alg == :alg_B and @rows[row+1][col] < to
+          return false
+        elsif @vector_rep.algebra.alg == :alg_D
+          if @rows[row+1][col] < to
+            return false
+          # Allow the pair to be n and \bar{n}, but not other combinations
+          elsif (@rows[row+1][col] <=> to) == 0 and @vector_rep.node_to_level_hash[to] != @vector_rep.algebra.rank-1
+            return false
+          end
+        end
+
+      end
+
+      return true
     end
   end
 end
