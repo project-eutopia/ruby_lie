@@ -153,16 +153,16 @@ module RubyLie
       return nil
     end
 
+    # Try to increment the current column with simple root "root_index"
     def try_col_with_root_index(col, root_index)
 
       if root_index >= 0
         self.each_col_at(col) do |elem, row|
 
           @vector_rep.each_chain_link(root_index) do |from, to|
-            if from == elem and try_next_tableau(row, col, to, root_index)
-              tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
-              tableau.rows[row][col] = to
-              return tableau
+            if from == elem
+              tableau = try_next_tableau(row, col, to, root_index)
+              return tableau if not tableau.nil?
             end
           end
               
@@ -181,30 +181,54 @@ module RubyLie
     end
 
 
+    # Try to increment the current column/row to vector "to"
+    # from simple root "root_index"
     def try_next_tableau(row, col, to, root_index)
-      # Try this possible change
-      if @rows[row][col+1] and @rows[row][col+1] < to
-        return false
-      elsif @rows[row+1] and @rows[row+1][col]
-
-        # A and C type must be strictly increasing down a column
-        if (@vector_rep.algebra.alg == :alg_A or @vector_rep.algebra.alg == :alg_C) and @rows[row+1][col] <= to
-          return false
-        elsif @vector_rep.algebra.alg == :alg_B and @rows[row+1][col] < to
-          return false
-        elsif @vector_rep.algebra.alg == :alg_D
-          if @rows[row+1][col] < to
-            return false
-          # Allow the pair to be n and \bar{n}, but not other combinations
-          elsif (@rows[row+1][col] <=> to) == 0 and @vector_rep.node_to_level_hash[to] != @vector_rep.algebra.rank-1
-            return false
-          end
-        end
-
+      if @rows[row+1]
+        return nil if not verify_up_down(to, @rows[row+1][col])
       end
+      if row > 0 and @rows[row-1]
+        return nil if not verify_up_down(@rows[row-1][col], to)
+      end
+      return nil if not verify_left_right(to, @rows[row][col+1])
+      return nil if not verify_left_right(@rows[row][col-1], to)
 
-      return true
+      tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
+      tableau.rows[row][col] = to
+      return tableau
     end
+
+    # Verify that the two vectors left and right are valid
+    def verify_left_right(left, right)
+      return true if left.nil? or right.nil?
+      return (left <= right) ? true : false
+    end
+
+    # Verify that the two vectors up and down are valid
+    def verify_up_down(up, down)
+      return true if up.nil? or down.nil?
+
+      case @vector_rep.algebra.alg
+      when :alg_A, :alg_C
+        return (up < down) ? true : false
+      when :alg_B
+        return (up <= down) ? true : false
+      when :alg_D
+        case (up <=> down)
+        when -1
+          return true
+        when 1
+          return false
+        when 0
+          return (@vector_rep.node_to_level_hash[up] == @vector_rep.algebra.rank-1) ? true : false
+        else
+          return true
+        end
+      else
+        return true
+      end
+    end
+
   end
 end
 
