@@ -95,9 +95,9 @@ module RubyLie
     def each_col_at_backwards(i)
       row = @rows.size-1
       loop do
-        yield rows[row][i], row if rows[row][i].nil?
-        row -= 1
+        yield rows[row][i], row if not rows[row][i].nil?
         break if row == 0
+        row -= 1
       end
     end
 
@@ -156,46 +156,102 @@ module RubyLie
     # Try to increment the current column with simple root "root_index"
     def try_col_with_root_index(col, root_index)
 
-      if root_index >= 0
-        self.each_col_at(col) do |elem, row|
-
-          @vector_rep.each_chain_link(root_index) do |from, to|
-            if from == elem
-              tableau = try_next_tableau(row, col, to, root_index)
-              return tableau if not tableau.nil?
-            end
+      # This is the procedure for checking a given node element
+      # at the given row
+      check_elem_of_row = Proc.new do |elem, row|
+        @vector_rep.each_chain_link(root_index) do |from, to|
+          if from == elem
+            tableau = try_next_tableau(row, col, to, root_index)
+            return tableau if not tableau.nil?
           end
-              
+        end
+      end
+
+      if root_index > 0
+        self.each_col_at(col) do |elem, row|
+          check_elem_of_row.call(elem,row)
         end
 
       elsif root_index == 0
         self.each_col_at_backwards(col) do |elem, row|
-          return nil
+          check_elem_of_row.call(elem,row)
         end
-      else
-        return nil
       end
 
       return nil
-
     end
 
 
     # Try to increment the current column/row to vector "to"
     # from simple root "root_index"
     def try_next_tableau(row, col, to, root_index)
-      if @rows[row+1]
-        return nil if not verify_up_down(to, @rows[row+1][col])
-      end
-      if row > 0 and @rows[row-1]
-        return nil if not verify_up_down(@rows[row-1][col], to)
-      end
-      return nil if not verify_left_right(to, @rows[row][col+1])
-      return nil if not verify_left_right(@rows[row][col-1], to)
+      if root_index > 0
+        if @rows[row+1]
+          return nil if not verify_up_down(to, @rows[row+1][col])
+        end
+        if row > 0 and @rows[row-1]
+          return nil if not verify_up_down(@rows[row-1][col], to)
+        end
+        return nil if not verify_left_right(to, @rows[row][col+1])
+        return nil if not verify_left_right(@rows[row][col-1], to)
 
-      tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
-      tableau.rows[row][col] = to
-      return tableau
+        tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
+        tableau.rows[row][col] = to
+        return tableau
+
+      elsif root_index == 0
+        # Here we want to see if we can bubble the "to" value
+        # from here, up the column to an appropriate position
+        cur_row = row+1 # Start one below, as we will increment up at start
+        loop do
+          if cur_row == 0
+            break
+          else
+            cur_row -= 1
+          end
+
+          case cur_row
+          when row
+            if @rows[cur_row-1][col]
+              next if not verify_up_down(@rows[cur_row-1][col], to)
+            end
+            if @rows[cur_row+1][col]
+              next if not verify_up_down(@rows[cur_row+1][col], to)
+            end
+          when 0
+            next if not verify_up_down(to, @rows[cur_row][col])
+          when @rows.size-1
+            next if not verify_up_down(@rows[cur_row][col], to)
+          else
+            if @rows[cur_row-1][col]
+              next if not verify_up_down(@rows[cur_row-1][col], to)
+            end
+            if @rows[cur_row][col]
+              next if not verify_up_down(@rows[cur_row][col], to)
+            end
+          end
+
+          # Success at this row!
+          tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
+          if cur_row == row
+            tableau.rows[cur_row][col] = to
+          else
+            cur_row2 = row
+            loop do
+              tableau.rows[cur_row2][col] = tableau.rows[cur_row2-1][col]
+              cur_row2 -= 1
+              if cur_row2 == cur_row
+                tableau.rows[cur_row2][col] = to
+                break
+              end
+            end
+          end
+
+          return tableau
+        end
+      else
+        return nil
+      end
     end
 
     # Verify that the two vectors left and right are valid

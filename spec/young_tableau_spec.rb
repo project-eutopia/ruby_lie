@@ -54,5 +54,34 @@ describe RubyLie::YoungTableau do
 
     next_tableau.next_tableau(1).should_not be_nil
   end
+  
+  it "each_col_at(_backwards) works" do
+    a3 = RubyLie::Algebra.new(:alg_A, 3)
+    tableau = RubyLie::YoungTableau.from_highest_weight(a3.omega(3))
+
+    i = 0
+    tableau.each_col_at(0) do |elem, row|
+      elem.should be == tableau.rows[row][0]
+      row.should be == i
+      i += 1
+    end
+
+    i = 2
+    tableau.each_col_at_backwards(0) do |elem, row|
+      elem.should be == tableau.rows[row][0]
+      row.should be == i
+      i -= 1
+    end
+  end
+
+  it "check affine simple root" do
+    a3 = RubyLie::Algebra.new(:alg_A, 3)
+    tableau = RubyLie::YoungTableau.from_highest_weight(a3.omega(2))
+
+    second_last = tableau.next_tableau(2).next_tableau(1).next_tableau(3)
+    second_last.should_not be_nil
+    second_last.next_tableau(0).should be == tableau
+    second_last.next_tableau(2).next_tableau(0).should be == tableau.next_tableau(2)
+  end
 end
 
