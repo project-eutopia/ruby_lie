@@ -109,7 +109,8 @@ module RubyLie
       when Array
         return self.rows == tableau
       else
-        throw TypeError, "#{tableau.class} must be of type YoungTableau or Array"
+        return false
+        #throw TypeError, "#{tableau.class} must be of type YoungTableau or Array"
       end
 
       return false

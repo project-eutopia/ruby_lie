@@ -30,7 +30,7 @@ module RubyLie
       # sets up @root, and @levels variables
       generate_tree(use_young_tableau)
       
-      setup()
+      setup(use_young_tableau)
     end
     
     # Calculated via equation dim(Lambda) = Product_{positive roots} (alpha * (Lambda + rho)) / (alpha * rho)

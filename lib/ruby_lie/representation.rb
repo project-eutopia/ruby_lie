@@ -10,7 +10,7 @@ module RubyLie
     attr_reader :node_to_level_hash
 
     # User of this class must initialize the levels and algebra
-    def setup
+    def setup(use_young_tableau)
       # Hash from Node to index (the total index, from 0 to rank(rep)-1)
       @node_to_index_hash = Hash.new
       self.each_with_index do |node, index|
@@ -25,7 +25,7 @@ module RubyLie
       end
 
       
-      affinize_representation
+      affinize_representation(use_young_tableau)
 
       @chains = Hash.new
       (0..@algebra.rank).each do |i|
@@ -48,7 +48,7 @@ module RubyLie
     end
     
     # Add links in the chain for \alpha_0 root
-    def affinize_representation
+    def affinize_representation(use_young_tableau = true)
       # TODO
       # for now treat the disjoint D_2 case specially... somehow
       if @algebra.alg == :alg_D and @algebra.rank == 2
@@ -79,9 +79,28 @@ module RubyLie
           
           # Find the next node
           next_node = self.find do |node_to_compare|
-            node_to_compare.weight == new_weight
+            #node_to_compare.weight == new_weight
+            if node_to_compare.weight == new_weight
+              if use_young_tableau
+                # Check if Young tableau also agree
+                if node_to_compare.young_tableau == cur_node.young_tableau.next_tableau(0)
+                  true
+                else
+                  false
+                end
+              else
+                true
+              end
+            else
+              false
+            end
           end
           
+          if not next_node
+            puts "#{cur_node} #{next_node}"
+            break
+          end
+
           cur_node.add_child_from_simple_root(next_node, 0)
           next_node.add_parent_from_simple_root(cur_node, 0)
           cur_node = next_node
