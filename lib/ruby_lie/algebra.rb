@@ -116,8 +116,16 @@ module RubyLie
     end
     
     def fundamental_rep(i)
+      use_young_tableau = true
+
       if i >= 1 and i <= rank
-        return RubyLie::HighestWeightRep.new(self.omega(i))
+        case @alg
+        when :alg_B
+          use_young_tableau = false if i == rank
+        when :alg_D
+          use_young_tableau = false if i == rank or i == (rank-1)
+        end
+        return RubyLie::HighestWeightRep.new(self.omega(i), use_young_tableau)
       else
         return nil
       end
@@ -257,9 +265,7 @@ module RubyLie
         # TODO other algebras
       end
 
-      puts @alg
-      puts @rank
-      puts i
+      puts "Error: #{@alg} #{@rank} #{i}"
       raise RubyLie::NotSupportedException.new
     end
     

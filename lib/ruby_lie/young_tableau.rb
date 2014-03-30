@@ -42,6 +42,17 @@ module RubyLie
     end
 
     def self.from_highest_weight(highest_weight)
+      # When spinor rep, don't use
+      # TODO make it so when even, still use YoungTableau,
+      # e.g. D_4, 2*omega_3 rep has column [h_1,h_2,h_3,h_4]
+      case highest_weight.algebra
+      when :alg_B
+        return nil if ((highest_weight * highest_weight.algebra.alpha_dual(highest_weight.rank)) % 2) == 1
+      when :alg_D
+        return nil if ((highest_weight * highest_weight.algebra.alpha_dual(highest_weight.rank-1)) % 2) == 1
+        return nil if ((highest_weight * highest_weight.algebra.alpha_dual(highest_weight.rank)) % 2) == 1
+      end
+
       # First get partition
       partition = (1..highest_weight.algebra.rank).inject([]) do |all, i|
         blocks_in_row = (i..highest_weight.algebra.rank).inject(0) do |sum, cur|
@@ -187,14 +198,7 @@ module RubyLie
     # from simple root "root_index"
     def try_next_tableau(row, col, to, root_index)
       if root_index > 0
-        if @rows[row+1]
-          return nil if not verify_up_down(to, @rows[row+1][col])
-        end
-        if row > 0 and @rows[row-1]
-          return nil if not verify_up_down(@rows[row-1][col], to)
-        end
-        return nil if not verify_left_right(to, @rows[row][col+1])
-        return nil if not verify_left_right(@rows[row][col-1], to)
+        return nil if not verify_row_col_to(row, col, to)
 
         tableau = YoungTableau.new(:rows => self.rows, :vector_rep => @vector_rep)
         tableau.rows[row][col] = to
@@ -205,6 +209,7 @@ module RubyLie
         # from here, up the column to an appropriate position
         cur_row = row+1 # Start one below, as we will increment up at start
         loop do
+          # TODO handle case of one row in column
           if cur_row == 0
             break
           else
@@ -213,10 +218,10 @@ module RubyLie
 
           case cur_row
           when row
-            if @rows[cur_row-1][col]
+            if cur_row > 0 and @rows[cur_row-1] and @rows[cur_row-1][col]
               next if not verify_up_down(@rows[cur_row-1][col], to)
             end
-            if @rows[cur_row+1][col]
+            if @rows[cur_row+1] and @rows[cur_row+1][col]
               next if not verify_up_down(@rows[cur_row+1][col], to)
             end
           when 0
@@ -224,7 +229,7 @@ module RubyLie
           when @rows.size-1
             next if not verify_up_down(@rows[cur_row][col], to)
           else
-            if @rows[cur_row-1][col]
+            if cur_row > 0 and @rows[cur_row-1] and @rows[cur_row-1][col]
               next if not verify_up_down(@rows[cur_row-1][col], to)
             end
             if @rows[cur_row][col]
@@ -248,11 +253,45 @@ module RubyLie
             end
           end
 
+          cur_row2 = 0
+          success = true
+          loop do
+            if not tableau.verify_row_col(cur_row2, col)
+              success = false
+              break
+            end
+            cur_row2 += 1
+            break if not tableau.rows[cur_row2]
+          end
+          
+          next if not success
+
           return tableau
         end
       else
         return nil
       end
+    end
+
+    def verify_row_col(row, col)
+      return false if not @rows[row]
+      return verify_row_col_to(row, col, @rows[row][col])
+    end
+
+    def verify_row_col_to(row, col, to)
+      if @rows[row+1]
+        return false if not verify_up_down(to, @rows[row+1][col])
+      end
+      if row > 0 and @rows[row-1]
+        return false if not verify_up_down(@rows[row-1][col], to)
+      end
+      return false if not verify_left_right(to, @rows[row][col+1])
+      return false if not verify_left_right(@rows[row][col-1], to)
+
+      return true
+    end
+
+    def verify_bubble(col, row1, row2)
     end
 
     # Verify that the two vectors left and right are valid

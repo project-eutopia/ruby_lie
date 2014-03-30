@@ -41,6 +41,27 @@ describe RubyLie::YoungTableau do
     tableau.next_tableau(2).should be == tableau2.next_tableau(2)
   end
 
+  it "omega_1 rep same as vector rep" do
+    a2 = RubyLie::Algebra.new(:alg_A, 2)
+    vec_rep = a2.vector_rep
+    rep1 = RubyLie::HighestWeightRep.new(a2.omega(1), true)
+
+    top_vec = vec_rep.levels[0][0]
+    top_1   = rep1.levels[0][0]
+
+    
+    (top_vec).should be == top_1
+    (top_vec.children[1]).should be == top_1.children[1]
+
+    bot_vec = top_vec.children[1].children[2]
+    bot_1 = top_1.children[1].children[2]
+
+    bot_vec.should be == bot_1
+
+    bot_vec.children[0].should_not be_nil
+    bot_1.children[0].should_not be_nil
+  end
+
   it "check omega_2 of a3" do
     a3 = RubyLie::Algebra.new(:alg_A, 3)
     vec_rep = a3.vector_rep

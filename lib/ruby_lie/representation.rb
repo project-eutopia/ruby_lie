@@ -23,7 +23,6 @@ module RubyLie
           @node_to_level_hash[node] = index
         end
       end
-
       
       affinize_representation(use_young_tableau)
 
@@ -71,7 +70,6 @@ module RubyLie
       
       self.each do |node|
         abs_p = node.get_q(0) + node.weight * alpha_0_dual
-#        puts "abs_p = #{abs_p}"
 
         cur_node = node
         while abs_p > 0
@@ -97,7 +95,7 @@ module RubyLie
           end
           
           if not next_node
-            puts "#{cur_node} #{next_node}"
+            puts "cur:#{cur_node} \nnext:#{next_node}"
             break
           end
 
