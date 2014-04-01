@@ -63,10 +63,13 @@ module RubyLie
     
     def <=>(other)
       if @sqrt_part == other
-        return 0
-      else
-        return self.to_f <=> other.to_f
+        case other
+        when Sqrt
+          return @front_part <=> other.front_part
+        end
       end
+
+      return self.to_f <=> other.to_f
     end
     
     def to_s
@@ -99,18 +102,15 @@ module RubyLie
     end
     
     def -@
-#      puts "-(#{self})"
       return Sqrt.new(@sqrt_part, -@front_part)
     end
     
     def +@
-#      puts "(#{self})"
       return self.copy
     end
     
     # Just simply add as regular Numeric (no factoring and such)
     def +(a)
-#      puts "(#{self}) + (#{a})"
       if self == 0
         return a
       elsif a == 0
@@ -136,7 +136,6 @@ module RubyLie
     end
     
     def -(a)
-#      puts "(#{self}) - (#{a})"
       return self + (-a)
     end
     
@@ -221,7 +220,6 @@ module RubyLie
     def coerce(other)
       case other
       when Numeric
-#        puts "coerce #{Sqrt.new(1,other)} into #{self.copy}"
         return Sqrt.new(1,other), self.copy
       else
         raise TypeError, "#{other.class} can't be coerced into #{self.class}"

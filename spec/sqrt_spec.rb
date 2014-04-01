@@ -40,7 +40,10 @@ describe RubyLie::Sqrt do
   end
   
   it "<=> works" do
-    pending "TODO: write this code"
+    expect(RubyLie::Sqrt.of(2) <=> 1*RubyLie::Sqrt.of(2)).to be == 0
+    expect(RubyLie::Sqrt.of(2) <=> 2).to be == -1
+    expect(RubyLie::Sqrt.of(2) <=> 1).to be == 1
+    expect(RubyLie::Sqrt.of(2)*RubyLie::Sqrt.of(2) <=> 2).to be == 0
   end
 
   it "roots of negative numbers square to negative" do
