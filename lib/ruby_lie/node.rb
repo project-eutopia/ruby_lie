@@ -106,5 +106,50 @@ module RubyLie
       @children[root_i] = child
     end
     
+    def to_latex
+      return @young_tableau.to_latex if @young_tableau
+      return @weight.dynkin_labels.to_s
+    end
+
+    def vec_weight_to_latex
+      level = @representation.node_to_level_hash[self]
+
+      case @weight.algebra.alg
+      when :alg_A
+        return "#{level+1}"
+
+      when :alg_B
+        case level <=> @weight.algebra.rank
+        when -1
+          return "#{level+1}"
+        when 0
+          return "0"
+        when 1
+          return "\\bar{#{2*@weight.algebra.rank+1 - level}}"
+        end
+
+      when :alg_C
+        if level < @weight.algebra.rank
+          return "#{level+1}"
+        else
+          return "\\bar{#{2*@weight.algebra.rank - level}}"
+        end
+
+      when :alg_D
+        case level <=> (@weight.algebra.rank-1)
+        when -1
+          return "#{level+1}"
+        when 0
+          return "#{level+1}" if (@weight * @weight.algebra.alpha_dual(@weight.algebra.rank)) == 1
+          return "\\bar{#{level+1}}" if (@weight * @weight.algebra.alpha_dual(@weight.algebra.rank)) == -1
+        when 1
+          return "\\bar{#{2*@weight.algebra.rank-1 - level}}"
+        end
+
+      end
+
+      return ""
+    end
+
   end
 end

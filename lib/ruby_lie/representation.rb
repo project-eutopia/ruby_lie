@@ -324,15 +324,15 @@ module RubyLie
         res + value.each_with_index.inject("") do |res2, (node, index2)|
           # First has no position
           if (index == 0) and (index2 == 0)
-            res2 + "  \\node[main node] (h_#{index}_#{index2}) {$#{node.weight.dynkin_labels.to_s}$};\n"
+            res2 + "  \\node[main node] (h_#{index}_#{index2}) {$#{node.to_latex}$};\n"
             
           # First of a level just below the first of the previous level
           elsif index2 == 0
-            res2 + "  \\node[main node] (h_#{index}_#{index2}) [below of=h_#{index-1}_#{index2}] {$#{node.weight.dynkin_labels.to_s}$};\n"
+            res2 + "  \\node[main node] (h_#{index}_#{index2}) [below of=h_#{index-1}_#{index2}] {$#{node.to_latex}$};\n"
             
           # Right of the previous index
           else
-            res2 + "  \\node[main node] (h_#{index}_#{index2}) [right of=h_#{index}_#{index2-1}] {$#{node.weight.dynkin_labels.to_s}$};\n"
+            res2 + "  \\node[main node] (h_#{index}_#{index2}) [right of=h_#{index}_#{index2-1}] {$#{node.to_latex}$};\n"
           end
         end
       end
@@ -347,8 +347,9 @@ module RubyLie
             if key != 0
               s = res3 + "        edge node {$\\alpha_#{key}$} (h_#{index+1}_"
               @levels[index+1].each_with_index do |node_to_check, index3|
-                if node_to_check.weight == node2.weight
+                if node_to_check == node2
                   s += "#{index3})\n"
+                  break
                 end
               end
               s

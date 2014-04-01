@@ -119,7 +119,6 @@ module RubyLie
                 # by the same simple roots?
                 if node_to_check.weight == vec
                   if use_young_tableau
-                    # Check if Young tableau also agree
                     if node_to_check.young_tableau == cur_node.young_tableau.next_tableau(i)
                       true
                     else

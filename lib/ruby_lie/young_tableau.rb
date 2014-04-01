@@ -41,6 +41,24 @@ module RubyLie
       end
     end
 
+    def to_latex
+      s = ""
+      col = 0
+
+      loop do
+        break if @rows[0][col].nil?
+
+        self.each_col_at(col) do |elem, row|
+          s += "#{elem.vec_weight_to_latex}, " 
+        end
+        s += "\n"
+
+        col += 1
+      end
+
+      return s
+    end
+
     def self.from_highest_weight(highest_weight)
       # When spinor rep, don't use
       # TODO make it so when even, still use YoungTableau,
@@ -209,7 +227,6 @@ module RubyLie
         # from here, up the column to an appropriate position
         cur_row = row+1 # Start one below, as we will increment up at start
         loop do
-          # TODO handle case of one row in column
           if cur_row == 0
             break
           else
@@ -291,9 +308,6 @@ module RubyLie
       return true
     end
 
-    def verify_bubble(col, row1, row2)
-    end
-
     # Verify that the two vectors left and right are valid
     def verify_left_right(left, right)
       return true if left.nil? or right.nil?
@@ -317,7 +331,7 @@ module RubyLie
         when 1
           return false
         when 0
-          return (@vector_rep.node_to_level_hash[up] == @vector_rep.algebra.rank-1) ? true : false
+          return ((@vector_rep.node_to_level_hash[up] == @vector_rep.algebra.rank-1) and (up != down)) ? true : false
         else
           return true
         end

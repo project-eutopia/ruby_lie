@@ -10,10 +10,10 @@ describe RubyLie::Sqrt do
   end
   
   it "square roots simplify" do
-    expect(RubyLie::Sqrt.of(0)).to be == 0
-    expect(RubyLie::Sqrt.of(1)).to be == 1
-    expect(RubyLie::Sqrt.of(4)).to be == 2
-    expect(RubyLie::Sqrt.of(9)).to be == 3
+    expect(RubyLie::Sqrt.of( 0)).to be == 0
+    expect(RubyLie::Sqrt.of( 1)).to be == 1
+    expect(RubyLie::Sqrt.of( 4)).to be == 2
+    expect(RubyLie::Sqrt.of( 9)).to be == 3
     expect(RubyLie::Sqrt.of(16)).to be == 4
   end
   

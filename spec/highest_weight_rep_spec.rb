@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe RubyLie::HighestWeightRep do
-  MAX_DIMENSION = 180
+  MAX_DIMENSION = 500
   
   ALGEBRAS.each do |algebra|
     context "Algebra = (#{algebra.to_latex})" do
@@ -10,7 +10,10 @@ describe RubyLie::HighestWeightRep do
       reps = Array.new
       (1..algebra.rank).each do |i|
         if algebra.omega(i).dimension <= MAX_DIMENSION
-          reps[i] = RubyLie::HighestWeightRep.new(algebra.omega(i), true)
+          it "omega_#{i} representation shouldn't be nil" do
+            reps[i] = RubyLie::HighestWeightRep.new(algebra.omega(i), true)
+            reps[i].should_not be_nil
+          end
         end
       end
 
