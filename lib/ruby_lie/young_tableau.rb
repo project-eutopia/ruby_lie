@@ -308,7 +308,8 @@ module RubyLie
       when :alg_A, :alg_C
         return (up < down) ? true : false
       when :alg_B
-        return (up <= down) ? true : false
+        return true if up.weight.zero? and up.weight == down.weight 
+        return (up < down) ? true : false
       when :alg_D
         case (up <=> down)
         when -1

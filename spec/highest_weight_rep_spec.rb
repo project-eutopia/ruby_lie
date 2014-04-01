@@ -18,7 +18,7 @@ describe RubyLie::HighestWeightRep do
         next if rep.nil?
         e,f,h = rep.matrix_rep_efh
 
-        context "Highest weight = (#{rep.highest_weight}) #{h[0]}" do
+        context "Highest weight = (#{rep.highest_weight})" do
 
           it "POSTULATION: eigenvalue ratios with and without sqrt(coxeter_label) weighting is the same" do
             ratio = nil
