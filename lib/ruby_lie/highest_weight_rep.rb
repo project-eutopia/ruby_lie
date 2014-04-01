@@ -22,11 +22,15 @@ module RubyLie
       @highest_weight = highest_weight.copy
       @algebra = @highest_weight.algebra
 
-      if @algebra.alg == :alg_A
-        # TODO : turn off young tableau for spinor representations
-        use_young_tableau = use_young_tableau
+      if use_young_tableau
+        top_tableau = RubyLie::YoungTableau.from_highest_weight(@highest_weight)
+      else
+        top_tableau = nil
       end
-      
+      use_young_tableau = false if top_tableau.nil?
+
+      @root = Node.new(:weight => @highest_weight, :representation => self, :young_tableau => top_tableau) 
+
       # sets up @root, and @levels variables
       generate_tree(use_young_tableau)
       
@@ -79,13 +83,6 @@ module RubyLie
   #protected
     
     def generate_tree(use_young_tableau)
-      if use_young_tableau
-        top_tableau = RubyLie::YoungTableau.from_highest_weight(@highest_weight)
-      else
-        top_tableau = nil
-      end
-
-      @root = Node.new(:weight => @highest_weight, :representation => self, :young_tableau => top_tableau) 
       @levels = Array.new
       @levels[0] = [@root]
 
@@ -143,7 +140,7 @@ module RubyLie
 
                 #@node_to_multiplicity[overlapping_node] = multiplicity(overlapping_node)
               else
-                vec_node = Node.new(:weight => vec, :representation => self, :young_tableau => (top_tableau.nil? or not use_young_tableau) ? nil : cur_node.young_tableau.next_tableau(i)) 
+                vec_node = Node.new(:weight => vec, :representation => self, :young_tableau => (not use_young_tableau) ? nil : cur_node.young_tableau.next_tableau(i)) 
 
                 cur_node.add_child_from_simple_root(vec_node, i)
                 vec_node.add_parent_from_simple_root(cur_node, i)

@@ -104,5 +104,22 @@ describe RubyLie::YoungTableau do
     second_last.next_tableau(0).should be == tableau
     second_last.next_tableau(2).next_tableau(0).should be == tableau.next_tableau(2)
   end
+
+  it "spinor reps should give nil" do
+    d3 = RubyLie::Algebra.new(:alg_D,3)
+    d4 = RubyLie::Algebra.new(:alg_D,4)
+    b3 = RubyLie::Algebra.new(:alg_B,3)
+    b4 = RubyLie::Algebra.new(:alg_B,4)
+
+    RubyLie::YoungTableau.from_highest_weight(d3.omega(2)).should be_nil
+    RubyLie::YoungTableau.from_highest_weight(d3.omega(3)).should be_nil
+
+    RubyLie::YoungTableau.from_highest_weight(d4.omega(3)).should be_nil
+    RubyLie::YoungTableau.from_highest_weight(d4.omega(4)).should be_nil
+
+    RubyLie::YoungTableau.from_highest_weight(b3.omega(3)).should be_nil
+
+    RubyLie::YoungTableau.from_highest_weight(b4.omega(4)).should be_nil
+  end
 end
 

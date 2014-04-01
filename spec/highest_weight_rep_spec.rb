@@ -10,14 +10,15 @@ describe RubyLie::HighestWeightRep do
       reps = Array.new
       (1..algebra.rank).each do |i|
         if algebra.omega(i).dimension <= MAX_DIMENSION
-          reps[i] = RubyLie::HighestWeightRep.new(algebra.omega(i))
+          reps[i] = RubyLie::HighestWeightRep.new(algebra.omega(i), true)
         end
       end
 
       reps.each_with_index do |rep, index|
         next if rep.nil?
+        e,f,h = rep.matrix_rep_efh
 
-        context "Highest weight = (#{rep.highest_weight})" do
+        context "Highest weight = (#{rep.highest_weight}) #{h[0]}" do
 
           it "POSTULATION: eigenvalue ratios with and without sqrt(coxeter_label) weighting is the same" do
             ratio = nil
@@ -39,7 +40,6 @@ describe RubyLie::HighestWeightRep do
 
           # Keep in mind that H_i = alpha_i^\\vee \\cdot H
           it "tr(H_i * H_j) == alpha_i^\\vee * alpha_j^\\vee for i=0,...,rank" do
-            e,f,h = rep.matrix_rep_efh
             factor = Rational(algebra.alpha_dual(0)**2,(h[0]*h[0]).trace)
               
             (0..algebra.rank).each do |i|
@@ -51,7 +51,6 @@ describe RubyLie::HighestWeightRep do
           end
 
           it "tr(E_i * F_j) == 2/alpha_i^2 * delta_{i,j} for i=1,...,rank" do
-            e,f,h = rep.matrix_rep_efh
             factor = Rational(algebra.alpha_dual(0)**2,(h[0]*h[0]).trace)
             
             (1..algebra.rank).each do |i|
@@ -72,8 +71,6 @@ describe RubyLie::HighestWeightRep do
             return a*b-b*a
           end
           it "the matrix representations agree with Cartan matrix" do
-            e,f,h = rep.matrix_rep_efh()
-              
             (0..algebra.rank).each do |i|
               (0..algebra.rank).each do |j|
                 expect(comm(h[i], e[j])).to be == algebra.extended_cartan[j,i]*e[j]
@@ -86,11 +83,11 @@ describe RubyLie::HighestWeightRep do
               next if (algebra.omega(index) + algebra.omega(index2)).dimension > MAX_DIMENSION
               
               rep2 = RubyLie::HighestWeightRep.new(algebra.omega(index) + algebra.omega(index2))
-              e,f,h = rep2.matrix_rep_efh
+              e2,f2,h2 = rep2.matrix_rep_efh
                 
               (1..algebra.rank).each do |i|
                 (1..algebra.rank).each do |j|
-                  expect(comm(h[i], e[j])).to be == algebra.extended_cartan[j,i]*e[j]
+                  expect(comm(h2[i], e2[j])).to be == algebra.extended_cartan[j,i]*e2[j]
                 end
               end
             end

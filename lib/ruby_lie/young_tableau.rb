@@ -45,12 +45,12 @@ module RubyLie
       # When spinor rep, don't use
       # TODO make it so when even, still use YoungTableau,
       # e.g. D_4, 2*omega_3 rep has column [h_1,h_2,h_3,h_4]
-      case highest_weight.algebra
+      case highest_weight.algebra.alg
       when :alg_B
-        return nil if ((highest_weight * highest_weight.algebra.alpha_dual(highest_weight.rank)) % 2) == 1
+        return nil if ((highest_weight * highest_weight.algebra.alpha_dual(highest_weight.algebra.rank)) % 2) == 1
       when :alg_D
-        return nil if ((highest_weight * highest_weight.algebra.alpha_dual(highest_weight.rank-1)) % 2) == 1
-        return nil if ((highest_weight * highest_weight.algebra.alpha_dual(highest_weight.rank)) % 2) == 1
+        return nil if ((highest_weight * highest_weight.algebra.alpha_dual(highest_weight.algebra.rank-1)) % 2) == 1
+        return nil if ((highest_weight * highest_weight.algebra.alpha_dual(highest_weight.algebra.rank)) % 2) == 1
       end
 
       # First get partition
