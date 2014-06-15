@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe RubyLie::Vector do
   a3 = RubyLie::Algebra.new(:alg_A, 3)
-  
+
   it "can initialize a Vector from an algebra instance or from hash" do
     expect(RubyLie::Vector.new([1], :alpha, a3)).not_to be_nil
     expect(RubyLie::Vector.new(Matrix[[1]], :alpha, a3)).not_to be_nil
@@ -16,13 +16,13 @@ describe RubyLie::Vector do
       expect(a3.alpha(i)).to be == (a3.alpha(i) + 0)
       expect(a3.alpha(i)).to be == (a3.alpha(i) - 0)
     end
-  end   
+  end
 
   it "minus of vector is -1*vector" do
     (0..a3.rank).each do |i|
       expect(-a3.alpha(i)).to be == (-1 * a3.alpha(i))
     end
-  end   
+  end
 
   it "multiply by 0 gives 0" do
     (0..a3.rank).each do |i|
@@ -43,32 +43,32 @@ describe RubyLie::Vector do
       expect(2*a3.alpha(i) - a3.alpha(i)).to be == (a3.alpha(i))
     end
   end
-  
+
 end
 
 describe RubyLie::Algebra do
-  
+
   algebra_list = [:alg_A, :alg_B, :alg_C, :alg_D]
-  
+
   algebra_list.each do |alg|
-    
+
     context alg.to_s do
       ranks = [1,2,3,4,5,8]
-      
+
       ranks.each do |rank|
         algebra = RubyLie::Algebra.new(alg, rank)
-        
+
         context ("r=" + rank.to_s) do
-          
+
           it "converting between alpha vectors should retain the same value" do
             (0..algebra.rank).each do |i|
               # Convert to each type
               alpha = algebra.alpha(i)
-              
+
               vectors = RubyLie::VECTOR_TYPES.map do |type|
                 alpha.to_type(type)
               end
-              
+
               # Verify equality works
               RubyLie::VECTOR_TYPES.each do |type1|
                 RubyLie::VECTOR_TYPES.each do |type2|
@@ -76,7 +76,7 @@ describe RubyLie::Algebra do
                       #"failed on i=" + i.to_s + ", type1(" + type1.to_s + ") should == type2(" + type2.to_s + ")"
                 end
               end
-              
+
               # Verify coefficients match going back and forth
               vectors.each do |vec|
                 RubyLie::VECTOR_TYPES.each do |type|
@@ -86,17 +86,17 @@ describe RubyLie::Algebra do
               end
             end
           end
-          
+
           it "converting between omega vectors should retain the same value" do
             # No omega_0 element
             (1..algebra.rank).each do |i|
               # Convert to each type
               omega = algebra.omega(i)
-              
+
               vectors = RubyLie::VECTOR_TYPES.map do |type|
                 omega.to_type(type)
               end
-              
+
               # Verify equality works
               RubyLie::VECTOR_TYPES.each do |type1|
                 RubyLie::VECTOR_TYPES.each do |type2|
@@ -104,7 +104,7 @@ describe RubyLie::Algebra do
                       #"failed on i=" + i.to_s + ", type1(" + type1.to_s + ") should == type2(" + type2.to_s + ")"
                 end
               end
-              
+
               # Verify coefficients match going back and forth
               vectors.each do |vec|
                 RubyLie::VECTOR_TYPES.each do |type|
@@ -114,17 +114,17 @@ describe RubyLie::Algebra do
               end
             end
           end
-          
+
           it "alpha_i = Cartan_ij * omega_j" do
             (1..algebra.rank).each do |i|
               alpha_test = (1..algebra.rank).inject(0) do |res, elem|
                 res + algebra.cartan[i-1,elem-1] * algebra.omega(elem)
               end
-              
+
               expect(alpha_test).to be == algebra.alpha(i)
             end
           end
-          
+
           it "alpha_i dot alpha_j^\\vee gives Cartan matrix" do
             (1..algebra.rank).each do |i|
               (1..algebra.rank).each do |j|
@@ -133,7 +133,7 @@ describe RubyLie::Algebra do
               end
             end
           end
-          
+
           it "alpha_i dot omega_j^\\vee == delta_ij" do
             (1..algebra.rank).each do |i|
               (1..algebra.rank).each do |j|
@@ -154,13 +154,13 @@ describe RubyLie::Algebra do
 
           it "weyl vector check" do
             weyl = algebra.weyl_vector
-            
+
             # Verify sum of fundamental roots
             weyl_test = (1..rank).inject(0) do |res, elem|
               res + algebra.omega(elem)
             end
             expect(weyl_test).to be == weyl
-            
+
             (1..rank).each do |i|
               expect(weyl * algebra.alpha(i, :dual => true)).to be == 1#,
                   #"alpha_"+i.to_s+" dual dots to 1"
@@ -171,7 +171,7 @@ describe RubyLie::Algebra do
 
           it "dual weyl vector check" do
             weyl_dual = algebra.weyl_vector(:dual => true)
-            
+
             # Verify sum of fundamental dual roots
             weyl_dual_test = (1..rank).inject(0) do |res, elem|
               res + algebra.omega(elem, :dual => true)
@@ -221,7 +221,7 @@ describe RubyLie::Algebra do
 
             end
           end
-          
+
           case alg
           when :alg_A
             it "has Coxeter number r+1="+(rank+1).to_s do
@@ -232,7 +232,7 @@ describe RubyLie::Algebra do
             it "has Coxeter number 2r="+(2*rank).to_s do
               algebra.coxeter_number.should == 2*rank
             end
-            
+
             if rank > 1
               it "has dual Coxeter number 2r-1="+(2*rank-1).to_s do
                 algebra.coxeter_number(:dual => true).should == 2*rank - 1
@@ -243,7 +243,7 @@ describe RubyLie::Algebra do
             it "has Coxeter number 2r="+(2*rank).to_s do
               algebra.coxeter_number.should == 2*rank
             end
-            
+
             if rank > 1
               it "has dual Coxeter number r+1="+(rank+1).to_s do
                 algebra.coxeter_number(:dual => true).should == rank+1
@@ -264,7 +264,7 @@ describe RubyLie::Algebra do
           end
         end
       end #end ranks
-      
+
     end #end algebra
 
   end

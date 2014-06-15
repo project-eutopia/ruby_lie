@@ -1,11 +1,11 @@
 module RubyLie
-  
+
   class Sqrt
     include Comparable
-    
+
     attr_reader :sqrt_part
     attr_reader :front_part
-    
+
     def self.of(n)
       return Sqrt.new(n, 1).simplify()
     end
@@ -22,14 +22,14 @@ module RubyLie
       @sqrt_part = sqrt_part
       @front_part = front_part
     end
-    
+
   public
     def simplify
       if @sqrt_part < 0
         @sqrt_part *= -1
         @front_part *= Complex(0,1)
       end
-      
+
       if @sqrt_part.is_a? Float
         return @front_part * Math.sqrt(@sqrt_part)
       end
@@ -48,19 +48,19 @@ module RubyLie
 
       return self
     end
-    
+
     def copy
       return Sqrt.new(@sqrt_part, @front_part)
     end
-    
+
     def abs
       return Sqrt.new(@sqrt_part, @front_part.abs)
     end
-    
+
     def to_f
       return @front_part * Math.sqrt(@sqrt_part)
     end
-    
+
     def <=>(other)
       if @sqrt_part == other
         case other
@@ -71,7 +71,7 @@ module RubyLie
 
       return self.to_f <=> other.to_f
     end
-    
+
     def to_s
 #      return "(#{@front_part}) * (sqrt(#{@sqrt_part}))"
       if @sqrt_part == 1
@@ -86,7 +86,7 @@ module RubyLie
         end
       end
     end
-    
+
     def to_latex
       if @sqrt_part == 1
         "#{@front_part.to_latex}"
@@ -100,15 +100,15 @@ module RubyLie
         end
       end
     end
-    
+
     def -@
       return Sqrt.new(@sqrt_part, -@front_part)
     end
-    
+
     def +@
       return self.copy
     end
-    
+
     # Just simply add as regular Numeric (no factoring and such)
     def +(a)
       if self == 0
@@ -134,11 +134,11 @@ module RubyLie
         end
       end
     end
-    
+
     def -(a)
       return self + (-a)
     end
-    
+
     def *(a)
       case a
       when Sqrt
@@ -153,7 +153,7 @@ module RubyLie
         raise TypeError, "#{a.class} (#{a}) must be Numeric, Sqrt, or Matrix"
       end
     end
-    
+
     def /(a) #/
       if a.is_a? Integer
         return Sqrt.new(@sqrt_part, @front_part * Rational(1,a)).simplify()
@@ -165,7 +165,7 @@ module RubyLie
         self.to_f / a.to_f
       end
     end
-    
+
     def **(a)
       return Sqrt.new(@sqrt_part ** a, @front_part ** a).simplify()
     end
@@ -173,20 +173,20 @@ module RubyLie
     def quo(a)
       return self / a
     end
-    
+
     def ==(a)
       s = self.simplify()
       if a.is_a? Sqrt
         a = a.simplify()
       end
-      
+
       case s
       when Sqrt
         case a
         when Sqrt
           return (s.sqrt_part == a.sqrt_part and s.front_part == a.front_part)
         when Numeric
-          return (s.sqrt_part == 1 and s.front_part == a) 
+          return (s.sqrt_part == 1 and s.front_part == a)
         else
           raise TypeError, "#{a.class} (#{a}) must be Numeric, Sqrt, or Matrix"
         end
@@ -200,13 +200,13 @@ module RubyLie
           raise TypeError, "#{a.class} (#{a}) must be Numeric, Sqrt, or Matrix"
         end
       end
-      
+
       case a
       when Sqrt
         s = self.simplify()
         a = a.simplify()
         if s.sqrt_part == 0 or s.front_part == 0
-          
+
         end
         return (s.sqrt_part == a.sqrt_part and s.front_part == a.front_part)
       when Numeric
@@ -216,7 +216,7 @@ module RubyLie
         raise TypeError, "#{a.class} (#{a}) must be Numeric, Sqrt, or Matrix"
       end
     end
-    
+
     def coerce(other)
       case other
       when Numeric
@@ -226,4 +226,4 @@ module RubyLie
       end
     end
   end
-end  
+end

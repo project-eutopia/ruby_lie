@@ -1,24 +1,24 @@
 module RubyLie
-  
+
   class HighestWeightRep
     include Representation
 
     attr_reader :highest_weight
-    
+
     def initialize(highest_weight, use_young_tableau = true)
       if not highest_weight.is_a? RubyLie::Vector
         raise TypeError, "#{highest_weight.class} is not an instance of RubyLie::Vector"
       end
-      
+
       highest_weight = highest_weight.to_type(:omega)
       highest_weight.coeffs.each do |coeff|
         if coeff < 0
           raise HighestWeightNotDominant, "Negative coefficient #{coeff}"
         elsif not coeff.is_a? Integer
-          raise HighestWeightNotDominant, "#{coeff} not an Integer" 
+          raise HighestWeightNotDominant, "#{coeff} not an Integer"
         end
       end
-      
+
       @highest_weight = highest_weight.copy
       @algebra = @highest_weight.algebra
 
@@ -29,14 +29,14 @@ module RubyLie
       end
       use_young_tableau = false if top_tableau.nil?
 
-      @root = Node.new(:weight => @highest_weight, :representation => self, :young_tableau => top_tableau) 
+      @root = Node.new(:weight => @highest_weight, :representation => self, :young_tableau => top_tableau)
 
       # sets up @root, and @levels variables
       generate_tree(use_young_tableau)
-      
+
       setup(use_young_tableau)
     end
-    
+
     # Calculated via equation dim(Lambda) = Product_{positive roots} (alpha * (Lambda + rho)) / (alpha * rho)
     def dimension
       @highest_weight.dimension
@@ -54,11 +54,11 @@ module RubyLie
     def multiplicity(node)
       return @node_to_multiplicity[node] if @node_to_multiplicity[node]
       return 1 if node.weight == @highest_weight
-      
+
       coeff = Rational(2,(@highest_weight+@algebra.weyl_vector)**2 - (node.weight+@algebra.weyl_vector)**2)
 
       sum = 0
-      
+
       @algebra.root_poset.each do |positive_root|
         m = 1
         loop do
@@ -81,20 +81,20 @@ module RubyLie
     end
 
   #protected
-    
+
     def generate_tree(use_young_tableau)
       @levels = Array.new
       @levels[0] = [@root]
 
       @node_to_multiplicity = Hash.new
-      
+
       cur_level = 0
       loop do
         has_next_level = false
-        
+
         # Loop through each weight at this level
         @levels[cur_level].each do |cur_node|
-          
+
           # Check if we can decrement this weight by a given simple root
           # weight * alpha_i^\\vee = -(q + p) with q >= 0, p <= 0, and
           #   weight + p*alpha_i , ... weight + q*alpha_i
@@ -108,11 +108,11 @@ module RubyLie
             if (q + cur_node.weight * @algebra.alpha_dual(i)) > 0
               has_next_level = true
               vec = cur_node.weight - @algebra.alpha(i)
-              
+
               if @levels[cur_level+1].nil?
                 @levels[cur_level+1] = Array.new
               end
-              
+
               # Check if this weight is already in then next level
               overlapping_node = @levels[cur_level+1].find do |node_to_check|
                 # TODO change check to make sure that this weight is arrived at
@@ -139,7 +139,7 @@ module RubyLie
 
                 #@node_to_multiplicity[overlapping_node] = multiplicity(overlapping_node)
               else
-                vec_node = Node.new(:weight => vec, :representation => self, :young_tableau => (not use_young_tableau) ? nil : cur_node.young_tableau.next_tableau(i)) 
+                vec_node = Node.new(:weight => vec, :representation => self, :young_tableau => (not use_young_tableau) ? nil : cur_node.young_tableau.next_tableau(i))
 
                 cur_node.add_child_from_simple_root(vec_node, i)
                 vec_node.add_parent_from_simple_root(cur_node, i)
@@ -151,7 +151,7 @@ module RubyLie
             end
           end
         end
-        
+
         # If found a simple root we can subtract the weight by, continue
         if has_next_level
           cur_level += 1
@@ -160,11 +160,11 @@ module RubyLie
         end
       end
     end
-    
+
     def root
       @root
     end
-    
+
   end
-  
+
 end

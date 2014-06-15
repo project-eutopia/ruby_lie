@@ -1,8 +1,8 @@
 module RubyLie
-  
+
   module Representation
     include Enumerable
-    
+
     attr_reader :algebra
     attr_reader :chains
     attr_reader :levels
@@ -23,7 +23,7 @@ module RubyLie
           @node_to_level_hash[node] = index
         end
       end
-      
+
       affinize_representation(use_young_tableau)
 
       @chains = Hash.new
@@ -45,7 +45,7 @@ module RubyLie
       end
       return nil
     end
-    
+
     # Add links in the chain for \alpha_0 root
     def affinize_representation(use_young_tableau = true)
       # TODO
@@ -56,8 +56,8 @@ module RubyLie
         @levels[0][1].add_child_from_simple_root(@levels[0][1], 0)
         @levels[0][1].add_parent_from_simple_root(@levels[0][1], 0)
       end
-        
-      
+
+
       # Loop through all weights and find those where we can subtract alpha_0
       #
       # weight * alpha_i^\\vee = -(q + p) with q >= 0, p <= 0, and
@@ -67,14 +67,14 @@ module RubyLie
       # Going down the chain in order means that we can assume q=0 for each we find
       alpha_0 = @algebra.alpha(0)
       alpha_0_dual = @algebra.alpha(0, :dual => true)
-      
+
       self.each do |node|
         abs_p = node.get_q(0) + node.weight * alpha_0_dual
 
         cur_node = node
         while abs_p > 0
           new_weight = cur_node.weight - alpha_0
-          
+
           # Find the next node
           next_node = self.find do |node_to_compare|
             #node_to_compare.weight == new_weight
@@ -93,7 +93,7 @@ module RubyLie
               false
             end
           end
-          
+
           if not next_node
             puts "cur:#{cur_node} \nnext:#{next_node}"
             break
@@ -106,7 +106,7 @@ module RubyLie
         end
       end
     end
-    
+
     def each
       @levels.each do |level|
         level.each do |cur_node|
@@ -118,7 +118,7 @@ module RubyLie
     def node_to_index(node)
       return @node_to_index_hash[node]
     end
-    
+
     def each_with_index
       index = 0
       @levels.each do |level|
@@ -128,7 +128,7 @@ module RubyLie
         end
       end
     end
-    
+
     # Returns pairs of nodes [from, to], which denote each link on the chains
     def each_chain_link(root_index)
       (0..self.num_chains(root_index)).each do |chain_num|
@@ -149,7 +149,7 @@ module RubyLie
         end
       end
     end
-    
+
     def each_chain_with_index(root_index, chain_num)
       index = 0
       if @chains[root_index]
@@ -161,7 +161,7 @@ module RubyLie
         end
       end
     end
-    
+
     # i is of alpha_i, and this gives an iterator down the whole chain with the given node (defaults to root)
     def each_in_root_chain(i, node = @root)
       if node.nil?
@@ -169,7 +169,7 @@ module RubyLie
       elsif not node.is_a? Node
         raise ArgumentError, "node must be instance of Node"
       end
-      
+
       # Find the top node
       loop do
         if node.parents[i]
@@ -178,18 +178,18 @@ module RubyLie
           break
         end
       end
-      
+
       # Now pointing at top, loop down, if chain exists
       if node.children[i]
         loop do
           yield node
-          
+
           break if not node.children[i]
           node = node.children[i]
         end
       end
     end
-    
+
     def E(i,j,n)
       Matrix.build(n,n) do |row,col|
         if row == i and j == col
@@ -199,11 +199,11 @@ module RubyLie
         end
       end
     end
-    
+
     def num_chains(i)
       @chains[i][:num_chains]
     end
-    
+
     def chain_length(root_index, chain_num)
       l = 0
       self.each_chain(root_index, chain_num) do |node|
@@ -211,16 +211,16 @@ module RubyLie
       end
       return l
     end
-    
+
     # Returns object like the following
     #
     # chain_hash[:num_chains] = number of chains
     # chain_hash[:node_to_chain] = {node1 => node1_chain_num, node2 => ...}
     def chain_hash(i)
       ret_hash = {:num_chains => 0, :node_to_chain => Hash.new}
-      
+
       found = false
-      
+
       self.each do |node|
         # If already added, ignore
         if not ret_hash[:node_to_chain][node]
@@ -229,22 +229,22 @@ module RubyLie
             ret_hash[:node_to_chain][node_in_chain] = ret_hash[:num_chains]
             found = true
           end
-          
+
           # If this node was indeed part of a chain, add it
           if found
             ret_hash[:num_chains] += 1
           end
         end
       end
-      
+
       return ret_hash
     end
 
     def matrix_rep(i)
-      
+
       hash_of_rowcol_to_val = self.get_hash_of_rowcol_to_val(i)
       this_size = self.size
-      
+
       return Matrix.build(this_size, this_size) do |row,col|
         if hash_of_rowcol_to_val[[row,col]]
           hash_of_rowcol_to_val[[row,col]]
@@ -273,21 +273,21 @@ module RubyLie
 
       return h
     end
-    
+
     def matrix_rep_efh
       e = Hash.new
       f = Hash.new
       h = Hash.new
-      
+
       (0..@algebra.rank).each do |i|
         e[i] = matrix_rep(i)
         f[i] = e[i].t
         h[i] = e[i]*f[i] - f[i]*e[i]
       end
-      
+
       return [e, f, h]
     end
-    
+
     def sum_of_simple_roots_matrix
       res = Matrix.zero(self.size, self.size)
       (0..@algebra.rank).each do |i|
@@ -295,7 +295,7 @@ module RubyLie
       end
       return res
     end
-    
+
     def sum_of_coxeter_weighted_matrix_reps
       res = Matrix.zero(self.size, self.size)
       (0..@algebra.rank).each do |i|
@@ -304,8 +304,8 @@ module RubyLie
       return res
     end
 
-    
-    
+
+
     def to_s
       return "\#<RubyLie::HighestWeightRep \n" +
           @levels.each_with_index.inject("") {|res, (value, index)|
@@ -314,7 +314,7 @@ module RubyLie
             } + "\n"
           } + ">"
     end
-    
+
     def to_latex
       latex  = "\\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.2cm,\n"
       latex += "                    thick,main node/.style={draw,font=\\sffamily\\large\\bfseries}]\n"
@@ -325,18 +325,18 @@ module RubyLie
           # First has no position
           if (index == 0) and (index2 == 0)
             res2 + "  \\node[main node] (h_#{index}_#{index2}) {$#{node.to_latex}$};\n"
-            
+
           # First of a level just below the first of the previous level
           elsif index2 == 0
             res2 + "  \\node[main node] (h_#{index}_#{index2}) [below of=h_#{index-1}_#{index2}] {$#{node.to_latex}$};\n"
-            
+
           # Right of the previous index
           else
             res2 + "  \\node[main node] (h_#{index}_#{index2}) [right of=h_#{index}_#{index2-1}] {$#{node.to_latex}$};\n"
           end
         end
       end
-      
+
       latex += "\n"
       latex += "  \\path[every node/.style={font=\\sffamily\\small}]\n"
 
@@ -359,10 +359,10 @@ module RubyLie
           end
         end
       end
-      
+
       latex += "  ;\n"
       latex += "\\end{tikzpicture}\n"
     end
   end
-  
+
 end

@@ -49,7 +49,7 @@ module RubyLie
         break if @rows[0][col].nil?
 
         self.each_col_at(col) do |elem, row|
-          s += "#{elem.vec_weight_to_latex}, " 
+          s += "#{elem.vec_weight_to_latex}, "
         end
         s += "\n"
 
@@ -113,7 +113,7 @@ module RubyLie
         end
       end
     end
-    
+
     def each_col_at(i)
       (0..@rows.size-1).each do |row|
         break if rows[row][i].nil?
@@ -155,7 +155,7 @@ module RubyLie
       end
       return s
     end
-        
+
 
     # Given hash of ways to increment each element of the Young tableau,
     # increment one such block going from right to left, top to bottom
@@ -163,10 +163,10 @@ module RubyLie
       if @vector_rep.nil? or root_index > @vector_rep.algebra.rank or root_index < 0
         return nil
       end
-      
+
       if root_index > 0
         col = rows[0].size-1
-        
+
         loop do
           tableau_test = try_col_with_root_index(col, root_index)
           return tableau_test if not tableau_test.nil?
@@ -280,7 +280,7 @@ module RubyLie
             cur_row2 += 1
             break if not tableau.rows[cur_row2]
           end
-          
+
           next if not success
 
           return tableau
@@ -322,7 +322,7 @@ module RubyLie
       when :alg_A, :alg_C
         return (up < down) ? true : false
       when :alg_B
-        return true if up.weight.zero? and up.weight == down.weight 
+        return true if up.weight.zero? and up.weight == down.weight
         return (up < down) ? true : false
       when :alg_D
         case (up <=> down)

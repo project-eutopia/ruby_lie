@@ -8,7 +8,7 @@ describe RubyLie::YoungTableau do
     RubyLie::YoungTableau.new(:partition => [2,1]).should_not be_nil
     RubyLie::YoungTableau.new(:partition => [3,2,1,1]).should_not be_nil
   end
-  
+
   it "A-type simple algebra, should increment properly" do
     a4 = RubyLie::Algebra.new(:alg_A, 4)
     vec_rep = a4.vector_rep
@@ -18,7 +18,7 @@ describe RubyLie::YoungTableau do
     tableau.partition.should be == [1,1]
     tableau.rows[0][0].should be == vec_rep.levels[0][0]
     tableau.rows[1][0].should be == vec_rep.levels[1][0]
-    
+
     tableau.next_tableau(1).should be_nil
 
     next_tableau = tableau.next_tableau(2)
@@ -49,7 +49,7 @@ describe RubyLie::YoungTableau do
     top_vec = vec_rep.levels[0][0]
     top_1   = rep1.levels[0][0]
 
-    
+
     (top_vec).should be == top_1
     (top_vec.children[1]).should be == top_1.children[1]
 
@@ -75,7 +75,7 @@ describe RubyLie::YoungTableau do
 
     next_tableau.next_tableau(1).should_not be_nil
   end
-  
+
   it "each_col_at(_backwards) works" do
     a3 = RubyLie::Algebra.new(:alg_A, 3)
     tableau = RubyLie::YoungTableau.from_highest_weight(a3.omega(3))

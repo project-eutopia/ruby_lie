@@ -8,7 +8,7 @@ describe RubyLie::RootPoset do
         poset = algebra.root_poset
         expect(poset.highest_root).to be == -algebra.alpha(0)
       end
-      
+
     end
   end
 end

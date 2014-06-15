@@ -1,16 +1,16 @@
-module RubyLie  
-  
+module RubyLie
+
   class Algebra
 
     attr_reader :cartan
     attr_reader :alg
     attr_reader :rank
     attr_reader :alpha_to_ortho_matrix
-    
+
     def initialize(alg, rank)
       @alg = alg
       @rank = rank
-      
+
       @cartan = get_cartan
       @alpha_to_ortho_matrix = get_alpha_to_ortho_matrix
       @extended_cartan = get_extended_cartan
@@ -23,7 +23,7 @@ module RubyLie
     def root_poset
       @root_poset ||= RubyLie::RootPoset.new(self)
     end
-    
+
     def to_latex
       if self.is_dual?
         return "#{self.base_type_to_char}^\\vee_#{@rank}"
@@ -31,7 +31,7 @@ module RubyLie
         return "#{self.base_type_to_char}_#{@rank}"
       end
     end
-    
+
     def is_dual?
       case @alg
       when :alg_B_dual, :alg_C_dual, :alg_G_dual
@@ -40,7 +40,7 @@ module RubyLie
         return false
       end
     end
-    
+
     def base_type_to_char
       case @alg
       when :alg_A
@@ -57,21 +57,21 @@ module RubyLie
         return 'F'
       when :alg_G, :alg_G_dual
         return 'G'
-      end        
+      end
     end
-    
+
     def ==(a)
       return (@alg == a.alg and @rank == a.rank)
     end
-    
+
     def fund_rep(i)
       return RubyLie::HighestWeightRep.new(omega(i))
     end
-    
+
     def highest_root
       return -alpha(0)
     end
-    
+
     # opts contains hash with :dual => true/false
     def alpha(i, opts = {})
       if i == 0
@@ -93,7 +93,7 @@ module RubyLie
     def alpha_dual(i)
       return alpha(i, :dual => true)
     end
-    
+
     # opts contains hash with :dual => true/false
     def omega(i, opts = {})
       if i == 0
@@ -114,7 +114,7 @@ module RubyLie
     def root_poset
       return RubyLie::RootPoset.new(self)
     end
-    
+
     def fundamental_rep(i)
       use_young_tableau = true
 
@@ -124,28 +124,28 @@ module RubyLie
         return nil
       end
     end
-    
+
     def weyl_vector(opts = {})
       return RubyLie::Vector.new(Matrix.row_vector(rank.times.map {|j| 1}),
                                  opts[:dual] ? :omega_dual : :omega, self)
     end
-    
+
     # opts contains hash with :dual => true/false
     def coxeter_number(opts = {})
       (0..@rank).inject(0) do |res, elem|
         res + coxeter_label(elem, opts)
       end
     end
-    
+
     # opts contains hash with :dual => true/false
     def coxeter_label(i, opts = {})
       if i < 0 or i > @rank
         raise RubyLie::IndexOutOfRangeException.new
       end
-      
+
       if @alg == :alg_A or @rank == 1
         return 1
-        
+
       elsif @alg == :alg_B or @alg == :alg_B_dual
         if i <= 1
           return 1
@@ -158,7 +158,7 @@ module RubyLie
             return 2
           end
         end
-        
+
       elsif @alg == :alg_C
         if opts[:dual]
           return 1
@@ -169,7 +169,7 @@ module RubyLie
             return 2
           end
         end
-        
+
       elsif @alg == :alg_D
         if i == 0 or i == 1 or i == @rank-1 or i == @rank
           return 1
@@ -254,7 +254,7 @@ module RubyLie
             return 3
           end
         end
-        
+
       else
         # TODO other algebras
       end
@@ -262,31 +262,31 @@ module RubyLie
       puts "Error: #{@alg} #{@rank} #{i}"
       raise RubyLie::NotSupportedException.new
     end
-    
+
     def extended_cartan
       @extended_cartan
     end
 
   end
-  
+
   # These protected methods of Algebra are used within this module, but not outside
   #protected
     class Algebra
-    
+
       def vec_to_type(vec, type)
 
         case vec.type
         # Trivial case
         when type
           return vec
-          
+
         when :alpha_dual
           return RubyLie::Vector.new(vec.coeffs.map.with_index {|elem, index| elem * self.two_over_alphai_sq(index+1)},
                                      :alpha, self).to_type(type)
         when :omega_dual
           return RubyLie::Vector.new(vec.coeffs.map.with_index {|elem, index| elem * self.two_over_alphai_sq(index+1)},
                                      :omega, self).to_type(type)
-          
+
         when :alpha
           case type
           when :alpha_dual
@@ -302,7 +302,7 @@ module RubyLie
           when :ortho
             return RubyLie::Vector.new(vec.coeffs * @alpha_to_ortho_matrix, :ortho, self)
           end
-          
+
         when :omega
           case type
           when :omega_dual
@@ -317,7 +317,7 @@ module RubyLie
           when :ortho
             return self.vec_to_type(self.vec_to_type(vec, :alpha), :ortho)
           end
-          
+
         when :ortho
           # First go to alpha
           if @alg == :alg_A or @rank == 1 or @alg == :alg_G
@@ -337,9 +337,9 @@ module RubyLie
                 end
               end
             end
-            
+
             coeffs_row_vector = Matrix.row_vector(coeffs)
-              
+
             # Now sum of elements is zero, so can ignore the @rank+1 element
             # and now can invert the @alpha_to_ortho_matrix
             short_alpha_to_ortho_matrix = Matrix.build(@rank,@rank) do |i,j|
@@ -353,7 +353,7 @@ module RubyLie
         end
       end
 
-      
+
       def inner_prod(vec1, vec2)
         case vec1.type
         when :alpha
@@ -367,7 +367,7 @@ module RubyLie
         else
           result = vec1.to_type(:alpha).coeffs * vec2.to_type(:omega_dual).coeffs.t
         end
-        
+
         # Convert to regular number
         if result.column_size == 1 and result.row_size == 1
           return result[0,0]
@@ -375,12 +375,12 @@ module RubyLie
           return nil
         end
       end
-                                                                       
+
       def two_over_alphai_sq(i)
         if i < 0 or i > @rank
           raise IndexOutOfRangeException.new
         end
-        
+
         if @alg == :alg_A or @rank == 1
           return 1
 
@@ -390,21 +390,21 @@ module RubyLie
           else
             return 2
           end
-          
+
         elsif @alg == :alg_B_dual
           if i == @rank
             return 1
           else
             return 2
           end
-          
+
         elsif @alg == :alg_C
           if i == 0 or i == @rank
             return 1
           else
             return 2
           end
-          
+
         elsif @alg == :alg_D
           return 1
 
@@ -417,7 +417,7 @@ module RubyLie
           else
             return 2
           end
-          
+
 
         elsif @alg == :alg_G
           if i == 0 or i == 1
@@ -425,21 +425,21 @@ module RubyLie
           else
             return 3
           end
-          
+
         else
           # TODO other cases
           return 1
         end
       end
-          
+
       def get_extended_cartan
         return Matrix.build(@rank+1, @rank+1) do |row, col|
           alpha(row) * alpha_dual(col)
         end
       end
-    
+
       def get_cartan
-        
+
         if @alg == :alg_A or @rank == 1
           return Matrix.build(@rank, @rank) do |row, col|
             if row == col
@@ -450,7 +450,7 @@ module RubyLie
               0
             end
           end
-          
+
         elsif @alg == :alg_B
           return Matrix.build(@rank, @rank) do |row, col|
             if row == col
@@ -476,7 +476,7 @@ module RubyLie
               0
             end
           end
-          
+
         elsif @alg == :alg_D
           return Matrix.build(@rank, @rank) do |row, col|
             if row == col
@@ -542,10 +542,10 @@ module RubyLie
         else
           # TODO other cases
         end
-        
+
         return nil
       end
-      
+
       def get_alpha_to_ortho_matrix
 
         if @alg == :alg_A or @rank == 1
@@ -657,8 +657,8 @@ module RubyLie
         else
           # TODO other cases
         end
-        
+
       end
     end
-  
+
 end

@@ -1,8 +1,8 @@
 module RubyLie
-  
+
   class Vector
     attr_reader :coeffs, :type, :algebra
-    
+
     # algebra can be an instance of RubyLie::Algebra or a hash e.g. {:alg => :alg_A, :rank => 3}
     def initialize(coeffs, type, algebra)
       case coeffs
@@ -13,11 +13,11 @@ module RubyLie
       else
         return nil
       end
-      
+
       @type = type
       if algebra.is_a? RubyLie::Algebra
         @algebra = algebra
-      
+
       # TODO F and G are fixed rank, and check rank of E type also
       elsif algebra[:alg] and algebra[:rank]
         @algebra = RubyLie::Algebra.new(algebra[:alg], algebra[:rank])
@@ -25,11 +25,11 @@ module RubyLie
         return nil
       end
     end
-    
+
     def to_type(type)
       return @algebra.vec_to_type(self, type)
     end
-    
+
     def dynkin_labels
       vec_in_omega = self.to_type(:omega)
       vec_in_omega.coeffs.map {|i| i}.to_a[0]
@@ -50,19 +50,19 @@ module RubyLie
       if not dominant?
         return 0
       end
-      
+
       prod = 1
-      
+
       poset = RubyLie::RootPoset.new(@algebra)
       rho = @algebra.weyl_vector
-      
+
       poset.each do |root|
         prod *= Rational(root * (self + rho), root * rho)
       end
 
       return prod.denominator == 1 ? prod.numerator : prod
     end
-    
+
     def type_to_latex(type)
       case type
       when :alpha
@@ -77,7 +77,7 @@ module RubyLie
         "e"
       end
     end
-    
+
     def to_latex
       latex = ""
       first = true
@@ -96,7 +96,7 @@ module RubyLie
           if label.is_a? Rational and label.denominator == 1
             label = label.numerator
           end
-          
+
           if label.abs == 1
             label = ""
           else
@@ -105,7 +105,7 @@ module RubyLie
           latex += "#{label.to_latex} #{type_to_latex(@type)}_{#{col+1}}"
         end
       end
-      
+
       return latex
     end
 
@@ -116,7 +116,7 @@ module RubyLie
     def weyl_reflect_by(alpha)
       self - (2 * (self*alpha) / alpha**2) * alpha
     end
-    
+
     def +(v)
       case v
       when Numeric
@@ -126,23 +126,23 @@ module RubyLie
           return self
         end
       end
-      
+
       if @type != v.type
         v = v.to_type(@type)
       end
-      
+
       # TODO implement each, map, etc to make it easier to do stuff like this
       return RubyLie::Vector.new(@coeffs.map.with_index {|elem, index| elem + v.coeffs[0,index]}, @type, @algebra)
     end
-    
+
     def -(v)
       return self + (-1)*v
     end
-    
+
     def -@
       return RubyLie::Vector.new(@coeffs.map {|elem| -elem}, @type, @algebra)
     end
-    
+
     def *(v)
       case v
       when Numeric
@@ -168,7 +168,7 @@ module RubyLie
 
       raise TypeError, "#{n} should be positive integer to exponentiate on #{self.class}"
     end
-        
+
 
     # Borrowed from Matrix source
     #
@@ -196,26 +196,26 @@ module RubyLie
 
       true
     end
-    
+
     def ==(v)
       return false if @algebra != v.algebra
-      
+
       v = v.to_type(@type) if @type != v.type
-      
+
       return @coeffs == v.coeffs
     end
-    
+
     def to_s
       return "\#<RubyLie::Vector " +
-             coeffs.to_a[0].to_s + ", :type => " + @type.to_s + 
-                           ", :alg => "  + @algebra.alg.to_s + 
+             coeffs.to_a[0].to_s + ", :type => " + @type.to_s +
+                           ", :alg => "  + @algebra.alg.to_s +
                            ", :rank => " + @algebra.rank.to_s +
                            ">"
     end
-    
+
     def copy
       return RubyLie::Vector.new(@coeffs.map {|elem| elem}, @type, @algebra)
     end
   end
-  
+
 end

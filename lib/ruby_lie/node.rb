@@ -1,5 +1,5 @@
 module RubyLie
-  
+
   class Node
     include Comparable
 
@@ -10,7 +10,7 @@ module RubyLie
     attr_accessor :children
 
     attr_accessor :representation
-    
+
     def initialize(params)
       @weight   = params[:weight]
       @young_tableau = params[:young_tableau]
@@ -37,7 +37,7 @@ module RubyLie
         raise TypeError, "#{other.class} must be Node"
       end
     end
-    
+
     # Used to compare if this is "greater" than the other by using
     # the levels within the representation as the comparator,
     # where higher levels are "greater" than
@@ -60,52 +60,52 @@ module RubyLie
     end
 
     def <(other)
-      return (self <=> other) == -1 ? true : false 
-    end 
+      return (self <=> other) == -1 ? true : false
+    end
 
     def >(other)
-      return (self <=> other) == 1 ? true : false 
-    end 
+      return (self <=> other) == 1 ? true : false
+    end
 
     def get_q(index)
       q = 0
       cur_node = self
-      
+
       loop do
         break if cur_node.parents[index].nil?
         cur_node = cur_node.parents[index]
         q += 1
       end
-      
+
       return q
     end
-    
+
     def get_p(index)
       p = 0
       cur_node = self
-      
+
       loop do
         break if cur_node.children.length == 0
         break if cur_node.children[index].nil?
         cur_node = cur_node.children[index]
         p -= 1
       end
-      
+
       return p
     end
-    
+
     def to_s
       weight.to_s
     end
-    
+
     def add_parent_from_simple_root(parent, root_i)
       @parents[root_i] = parent
     end
-    
+
     def add_child_from_simple_root(child, root_i)
       @children[root_i] = child
     end
-    
+
     def to_latex
       return @young_tableau.to_latex if @young_tableau
       return @weight.dynkin_labels.to_s

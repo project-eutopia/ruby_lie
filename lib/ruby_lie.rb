@@ -39,7 +39,7 @@ class Matrix
         end
       else
         latex += "#{e} & "
-      end        
+      end
     end
     latex += "\\end{#{type}}"
     return latex
@@ -59,11 +59,33 @@ class Matrix
       if count % per_line == 0
         s += "\\\\ \n"
       end
-       
+
       if s.nil?
         s = "#{e.to_latex} E_{#{row+1},#{col+1}}"
       else
         s += " + #{e.to_latex} E_{#{row+1},#{col+1}}"
+      end
+    end
+    return s
+  end
+
+  def to_mathematica
+    s = nil
+    self.each_with_index do |e, row, col|
+      if e == 1
+        e = ""
+      elsif e == 0
+        next
+      end
+
+      if e.is_a? RubyLie::Sqrt
+        e = "#{e.front_part == 1 ? "" : e.front_part} Sqrt[#{e.sqrt_part}]"
+      end
+
+      if s.nil?
+        s = "#{e.to_latex} ee[#{row+1},#{col+1}]"
+      else
+        s += " + #{e.to_latex} ee[#{row+1},#{col+1}]"
       end
     end
     return s
@@ -82,9 +104,9 @@ module RubyLie
   # Algebra symbols
   ALGEBRAS = [:alg_A, :alg_B, :alg_C, :alg_D, :alg_E, :alg_F, :alg_G,
               :alg_B_dual, :alg_C_dual, :alg_G_dual]
-  
+
   VECTOR_TYPES = [:alpha, :alpha_dual, :omega, :omega_dual, :ortho]
-  
+
   class IndexOutOfRangeException < Exception
   end
   class NotSupportedException < Exception

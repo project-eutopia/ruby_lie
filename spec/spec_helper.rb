@@ -27,8 +27,8 @@ end
 # Setup list of algebras to check in our tests
 ALGEBRAS = Array.new
 
-alg_list = [:alg_D]#, :alg_B, :alg_C, :alg_D]#, :alg_B]#, :alg_C, :alg_D, :alg_E, :alg_F, :alg_G]
-ranks = [1,2,3,4,5]
+alg_list = [:alg_A, :alg_B, :alg_C, :alg_D, :alg_G]
+ranks = [1,2,3,4]
 
 alg_list.each do |alg|
   ranks.each do |rank|
